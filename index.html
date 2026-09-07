@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Traders Association</title>
+<style>
+:root{
+  --bg:#E3F2FD; --panel:#FFFFFF; --input-bg:#F5FAFF; --accent:#1976D2;
+  --text:#263238; --error:#D32F2F; --ok:#2E7D32; --muted:#607889;
+  --g1:#1976D2; --g2:#00897B; --g3:#6A1B9A; --g4:#C2185B; --g5:#EF6C00; --g6:#2E7D32;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;background:var(--bg);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);font-size:14px;}
+#app{display:flex;flex-direction:column;min-height:100vh;}
+#topStrip{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--panel);border-bottom:3px solid var(--accent);position:sticky;top:0;z-index:20;gap:8px;}
+#langToggle{background:var(--accent);border:none;border-radius:10px;font-size:14px;padding:6px 14px;color:#fff;font-weight:700;white-space:nowrap;}
+#statusBar{font-size:13px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#panels{flex:1;padding:8px;padding-bottom:130px;overflow-y:auto;transition:padding-bottom .2s ease;}
+#app.log-expanded #panels{padding-bottom:330px;}
+.panel{background:var(--panel);border-radius:14px;margin-bottom:8px;overflow:hidden;transition:max-height .25s ease;box-shadow:0 2px 6px rgba(0,0,0,.10);border:1px solid #e3eaf0;}
+.panel-header{padding:13px 14px;font-size:17px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer;color:var(--accent);}
+.panel-sub{font-size:13px;font-weight:400;color:var(--muted);display:block;margin-top:2px;}
+.panel-body{display:none;padding:2px 10px 12px;}
+.panel.expanded .panel-body{display:block;}
+.panel.collapsed .panel-header{border-bottom:none;}
+input[type=text],input[type=email],input[type=date],select,textarea{
+  width:100%;font-size:16px;padding:9px 10px;margin:3px 0 0;border-radius:10px;border:2px solid #cfd8dc;background:var(--input-bg);color:var(--text);
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(25,118,210,.15);}
+input.err,select.err{border-color:var(--error) !important;}
+.field-grid{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-start;}
+.field{margin-bottom:4px;position:relative;min-width:76px;}
+.field.full{flex:1 1 100%;width:100%;}
+.field label{font-size:13px;font-weight:700;line-height:1.2;display:block;}
+.errmsg{color:var(--error);font-size:12px;min-height:14px;display:block;line-height:1.35;font-weight:600;}
+.okmsg{color:var(--ok);font-size:12px;min-height:14px;display:block;line-height:1.35;}
+.row2{display:flex;gap:8px;}
+.row2 .field{flex:1;}
+.searchbox{width:100%;font-size:16px;padding:9px 10px;border-radius:10px;border:2px solid #cfd8dc;margin:7px 0;background:var(--input-bg);}
+.list-row{padding:10px 8px;border-bottom:1px solid #eceff1;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.list-row:active{background:#f0f4f8;}
+.list-row .lr-name{font-weight:700;font-size:15px;}
+.list-row .lr-sub{font-size:13px;color:var(--muted);}
+.list-row.selected{background:var(--accent);border-left:5px solid var(--accent);}
+.list-row.selected .lr-name{color:#fff;}
+.list-row.selected .lr-sub{color:#eaf3ff;}
+.empty-note{padding:16px;color:var(--muted);font-size:15px;text-align:center;}
+.data-table{width:100%;border-collapse:collapse;font-size:15px;margin-top:4px;}
+.data-table thead th{background:var(--accent);color:#fff;text-align:left;padding:10px 8px;font-size:14px;font-weight:700;}
+.data-table thead th:first-child{border-radius:8px 0 0 0;}
+.data-table thead th:last-child{border-radius:0 8px 0 0;}
+.data-table tbody .list-row{display:table-row;cursor:pointer;border-bottom:1px solid #eceff1;}
+.data-table tbody .list-row td{padding:10px 8px;font-size:15px;}
+.data-table tbody .list-row td:first-child{font-weight:700;color:var(--g1);}
+.data-table tbody .list-row td:last-child{color:var(--g3);}
+.data-table tbody .list-row:nth-child(even){background:#f7fafd;}
+.data-table tbody .list-row:active{background:#eef3fb;}
+.data-table tbody .list-row.selected{background:var(--accent);}
+.data-table tbody .list-row.selected td{color:#fff;}
+.data-table tbody .list-row.selected td:first-child{color:#fff;border-left:5px solid #fff;}
+
+/* Field colour groups: identity(g1) contact(g2) address(g3) legal-id(g4) dates(g5) other(g6) */
+.field[data-grp="g1"] label{color:var(--g1);}
+.field[data-grp="g1"] input,.field[data-grp="g1"] select,.field[data-grp="g1"] textarea,.field[data-grp="g1"] .choicebox{border-color:var(--g1);color:var(--g1);}
+.field[data-grp="g2"] label{color:var(--g2);}
+.field[data-grp="g2"] input,.field[data-grp="g2"] select,.field[data-grp="g2"] textarea,.field[data-grp="g2"] .choicebox{border-color:var(--g2);color:var(--g2);}
+.field[data-grp="g3"] label{color:var(--g3);}
+.field[data-grp="g3"] input,.field[data-grp="g3"] select,.field[data-grp="g3"] textarea,.field[data-grp="g3"] .choicebox{border-color:var(--g3);color:var(--g3);}
+.field[data-grp="g4"] label{color:var(--g4);}
+.field[data-grp="g4"] input,.field[data-grp="g4"] select,.field[data-grp="g4"] textarea,.field[data-grp="g4"] .choicebox{border-color:var(--g4);color:var(--g4);}
+.field[data-grp="g5"] label{color:var(--g5);}
+.field[data-grp="g5"] input,.field[data-grp="g5"] select,.field[data-grp="g5"] textarea,.field[data-grp="g5"] .choicebox{border-color:var(--g5);color:var(--g5);}
+.field[data-grp="g6"] label{color:var(--g6);}
+.field[data-grp="g6"] input,.field[data-grp="g6"] select,.field[data-grp="g6"] textarea,.field[data-grp="g6"] .choicebox{border-color:var(--g6);color:var(--g6);}
+
+#bottomBar{position:fixed;left:0;bottom:0;width:100%;z-index:40;display:flex;flex-direction:column;box-shadow:0 -2px 10px rgba(0,0,0,.12);padding-bottom:env(safe-area-inset-bottom);}
+#actionbar{display:flex;background:var(--panel);border-top:3px solid var(--accent);}
+#actionbar button{flex:1;border:none;background:none;padding:12px 2px 10px;font-weight:700;font-size:14px;color:var(--accent);position:relative;overflow:hidden;}
+#actionbar button .abicon{display:block;font-size:23px;}
+#actionbar button:disabled{color:#b0bec5;}
+.suggest-box{position:absolute;left:0;right:0;top:100%;background:var(--panel);border:2px solid var(--accent);border-radius:10px;max-height:190px;overflow-y:auto;z-index:50;box-shadow:0 3px 10px rgba(0,0,0,.18);}
+.suggest-row{padding:8px 10px;font-size:14px;cursor:pointer;border-bottom:1px solid #eceff1;line-height:1.35;}
+.suggest-row:last-child{border-bottom:none;}
+.suggest-row:active{background:#eef3fb;}
+.suggest-row b{color:var(--accent);}
+.suggest-row small{color:var(--muted);display:block;font-size:12px;}
+#eventLog{background:var(--panel);border-top:2px solid #e3eaf0;}
+.log-history{max-height:220px;overflow-y:auto;padding:6px 12px;border-bottom:1px solid #eceff1;}
+.log-history .log-item{font-size:13px;padding:4px 0;border-bottom:1px dashed #eceff1;color:var(--text);}
+.log-line{padding:7px 12px;font-size:13px;color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.log-preview{flex:1;min-width:0;}
+.log-preview-item{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;color:var(--muted);line-height:1.35;}
+.log-line .logtoggle{color:var(--accent);font-weight:700;}
+.hint{color:var(--muted);font-size:12px;min-height:14px;display:block;line-height:1.35;}
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:flex-end;}
+.popup-sheet{background:var(--panel);width:100%;border-radius:20px 20px 0 0;padding:16px;max-height:75vh;overflow-y:auto;border-top:6px solid var(--accent);}
+.popup-sheet h3{margin:2px 0 12px;font-size:18px;color:var(--accent);}
+.popup-opt{padding:14px 12px;border-bottom:1px solid #eceff1;font-size:17px;cursor:pointer;border-left:5px solid transparent;border-radius:8px;margin-bottom:2px;}
+#popupOptsList .popup-opt:nth-child(6n+1){border-left-color:var(--g1);background:color-mix(in srgb, var(--g1) 7%, transparent);}
+#popupOptsList .popup-opt:nth-child(6n+2){border-left-color:var(--g2);background:color-mix(in srgb, var(--g2) 7%, transparent);}
+#popupOptsList .popup-opt:nth-child(6n+3){border-left-color:var(--g3);background:color-mix(in srgb, var(--g3) 7%, transparent);}
+#popupOptsList .popup-opt:nth-child(6n+4){border-left-color:var(--g4);background:color-mix(in srgb, var(--g4) 7%, transparent);}
+#popupOptsList .popup-opt:nth-child(6n+5){border-left-color:var(--g5);background:color-mix(in srgb, var(--g5) 7%, transparent);}
+#popupOptsList .popup-opt:nth-child(6n+0){border-left-color:var(--g6);background:color-mix(in srgb, var(--g6) 7%, transparent);}
+.popup-opt.current{color:var(--accent);font-weight:700;}
+.popup-close{margin-top:12px;width:100%;padding:14px;border-radius:12px;border:none;background:#eceff1;font-weight:700;font-size:15px;}
+.age-label{font-size:13px;color:var(--accent);font-weight:700;}
+.badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700;background:#fff3cd;color:#856404;}
+.choicebox{cursor:pointer;background:var(--input-bg);caret-color:transparent;}
+.choicebox::placeholder{color:var(--muted);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topStrip">
+    <span id="statusBar">Loading…</span>
+    <button id="langToggle">தமிழ்</button>
+  </div>
+
+  <div id="panels">
+    <div class="panel" id="panel-asso" data-panel="asso">
+      <div class="panel-header" data-toggle="asso">
+        <span><span id="assoHeaderLabel">Association</span><span class="panel-sub" id="assoSummary">Select or create</span></span>
+        <span>▾</span>
+      </div>
+      <div class="panel-body" id="assoBody"></div>
+    </div>
+
+    <div class="panel" id="panel-firm" data-panel="firm">
+      <div class="panel-header" data-toggle="firm">
+        <span><span id="firmHeaderLabel">Member Firms</span><span class="panel-sub" id="firmSummary">Select an association first</span></span>
+        <span>▾</span>
+      </div>
+      <div class="panel-body" id="firmBody"></div>
+    </div>
+
+    <div class="panel" id="panel-rep" data-panel="rep">
+      <div class="panel-header" data-toggle="rep">
+        <span><span id="repHeaderLabel">Representatives</span><span class="panel-sub" id="repSummary">Select a firm first</span></span>
+        <span>▾</span>
+      </div>
+      <div class="panel-body" id="repBody"></div>
+    </div>
+
+  </div>
+
+  <div id="bottomBar">
+    <div id="actionbar">
+      <button id="ab1"><span class="abicon">☰</span><span id="ab1label">Navigate</span></button>
+      <button id="ab2"><span class="abicon">🗑️</span><span id="ab2label">Delete</span></button>
+      <button id="ab3"><span class="abicon">➕</span><span id="ab3label">New</span></button>
+      <button id="ab4"><span class="abicon">✏️</span><span id="ab4label">Edit</span></button>
+    </div>
+
+    <div id="eventLog">
+      <div class="log-history" id="eventLogHistory" style="display:none"></div>
+      <div class="log-line" id="logLineClickable">
+        <div id="eventLogPreview" class="log-preview">
+          <div class="log-preview-item">Ready.</div>
+        </div>
+        <span class="logtoggle" id="logToggleIcon">▴</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="popupRoot"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc,
+  persistentLocalCache, persistentMultipleTabManager, initializeFirestore
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBE9-3DfexxDeZgsnbvIsN_EI79LTpHBJY",
+  authDomain: "tnvspmem.firebaseapp.com",
+  projectId: "tnvspmem",
+  storageBucket: "tnvspmem.firebasestorage.app",
+  messagingSenderId: "167496651526",
+  appId: "1:167496651526:web:6fc5421ae426bf2a524487"
+};
+
+let db = null, localMode = false;
+const statusBar = document.getElementById('statusBar');
+
+async function initFirebase(){
+  try{
+    const app = initializeApp(firebaseConfig);
+    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+    const auth = getAuth(app);
+    const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')), 10000));
+    await Promise.race([signInAnonymously(auth), timeout]);
+    statusBar.textContent = 'Connected (synced)';
+    return true;
+  }catch(e){
+    console.warn('Firebase init failed, using local mode:', e);
+    localMode = true;
+    statusBar.textContent = 'Local mode (offline) — data saved on this device';
+    return false;
+  }
+}
+
+/* ---------------- Local storage keys ---------------- */
+const LS_ASSO='ta_associations', LS_FIRM='ta_firms', LS_REP='ta_representatives', LS_LEARN='ta_learning', LS_THEME='ta_theme', LS_LANG='ta_lang';
+
+/* ---------------- Tamil / English toggle ---------------- */
+let lang = lsGet(LS_LANG, 'en');
+const TA = {
+  'Association':'சங்கம்', 'Member Firms':'உறுப்பினர் நிறுவனங்கள்', 'Representatives':'பிரதிநிதிகள்', 'Representative':'பிரதிநிதி',
+  'Select or create':'தேர்ந்தெடுக்கவும் அல்லது புதிதாக உருவாக்கவும்',
+  'Select an association first':'முதலில் ஒரு சங்கத்தைத் தேர்ந்தெடுக்கவும்',
+  'Select a firm first':'முதலில் ஒரு நிறுவனத்தைத் தேர்ந்தெடுக்கவும்',
+  'Search associations…':'சங்கங்களைத் தேடுங்கள்…', 'Search firms…':'நிறுவனங்களைத் தேடுங்கள்…', 'Search representatives…':'பிரதிநிதிகளைத் தேடுங்கள்…',
+  'No associations yet. Tap New to add one.':'இன்னும் சங்கங்கள் இல்லை. புதிதாக சேர்க்க "புதியது" ஐ தட்டவும்.',
+  'Select an Association above to see its firms.':'அதன் நிறுவனங்களைப் பார்க்க மேலே ஒரு சங்கத்தைத் தேர்ந்தெடுக்கவும்.',
+  'No firms under this association yet.':'இந்த சங்கத்தின் கீழ் இன்னும் நிறுவனங்கள் இல்லை.',
+  'Select a Member Firm above to see its representatives.':'அதன் பிரதிநிதிகளைப் பார்க்க மேலே ஒரு நிறுவனத்தைத் தேர்ந்தெடுக்கவும்.',
+  'No representatives for this firm yet.':'இந்த நிறுவனத்திற்கு இன்னும் பிரதிநிதிகள் இல்லை.',
+  'Association Name':'சங்கத்தின் பெயர்', 'Geographical Scope':'புவியியல் எல்லை',
+  'Registration No.':'பதிவு எண்.', 'Parent Association':'மூல சங்கம்', 'Phone':'தொலைபேசி', 'Email':'மின்னஞ்சல்',
+  'Geo Type':'புவியியல் வகை', 'Geo Scope':'புவியியல் எல்லை',
+  'Firm Name':'நிறுவனத்தின் பெயர்', 'Parent Firm':'மூல நிறுவனம்', 'Business Category':'வணிக வகை', 'Name (Tamil)':'பெயர் (தமிழில்)',
+  'GST No.':'ஜிஎஸ்டி எண்.', 'PAN No.':'பான் எண்.', 'Notes':'குறிப்புகள்', 'Door No.':'கதவு எண்.', 'Street Name':'தெரு பெயர்',
+  'Area':'பகுதி', 'Town':'நகரம்', 'District':'மாவட்டம்', 'Province':'மாநிலம்', 'Pincode':'அஞ்சல் குறியீடு',
+  'Representative Name':'பிரதிநிதியின் பெயர்', 'Parent Representative':'மூல பிரதிநிதி', 'Relation':'உறவு',
+  'Phone 1':'தொலைபேசி 1', 'Phone 2':'தொலைபேசி 2', 'Aadhaar No.':'ஆதார் எண்.', 'Date of Birth':'பிறந்த தேதி', 'Anniversary':'திருமண நாள்',
+  'area':'பகுதி', 'town/city':'நகரம்', 'district':'மாவட்டம்', 'province':'மாநிலம்',
+  'Assoc':'சங்கம்', 'Firm':'நிறுவனம்', 'Rep':'பிரதிநிதி',
+  'Delete':'நீக்கு', 'New':'புதியது', 'Discard':'நிராகரி', 'Edit':'திருத்து', 'Save':'சேமி',
+  'Navigate to…':'எங்கு செல்ல வேண்டும்…', 'Delete this record?':'இந்த பதிவை நீக்கவா?',
+  'Yes, delete':'ஆம், நீக்கு', 'Cancel':'ரத்துசெய்', 'Close':'மூடு',
+  '— None —':'— ஏதுமில்லை —', 'Tap to choose':'தேர்ந்தெடுக்க தட்டவும்', 'Pick a Geo Type first':'முதலில் புவியியல் வகையைத் தேர்ந்தெடுக்கவும்',
+};
+function tr(key){ return lang==='ta' ? (TA[key] || key) : key; }
+
+function lsGet(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch(e){ return fallback; } }
+function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+/* ---------------- In-memory data ---------------- */
+let ASSOS = [], FIRMS = [], REPS = [];
+let learning = lsGet(LS_LEARN, { areaSuggestions:{}, townSuggestions:{}, streetSuggestions:{}, firmCategories:{}, repRelations:{}, geoScopes:{area:[],'town/city':[],district:[],province:[]} });
+if(!learning.streetSuggestions) learning.streetSuggestions = {};
+function saveLearning(){ lsSet(LS_LEARN, learning); }
+
+/* ---------------- Firestore <-> local sync helpers ---------------- */
+function loadLocalOnly(){
+  ASSOS = lsGet(LS_ASSO, []);
+  FIRMS = lsGet(LS_FIRM, []);
+  REPS = lsGet(LS_REP, []);
+}
+
+async function syncFromCloud(){
+  if(localMode) return false;
+  try{
+    const [aSnap,fSnap,rSnap] = await Promise.all([
+      getDocs(collection(db,'associations')),
+      getDocs(collection(db,'firms')),
+      getDocs(collection(db,'representatives'))
+    ]);
+    ASSOS = aSnap.docs.map(d=>({id:d.id, ...d.data()}));
+    FIRMS = fSnap.docs.map(d=>({id:d.id, ...d.data()}));
+    REPS = rSnap.docs.map(d=>({id:d.id, ...d.data()}));
+    lsSet(LS_ASSO, ASSOS); lsSet(LS_FIRM, FIRMS); lsSet(LS_REP, REPS);
+    return true;
+  }catch(e){
+    console.warn('Firestore read failed, staying on local cache', e);
+    localMode = true;
+    statusBar.textContent = 'Local mode (offline) — data saved on this device';
+    return false;
+  }
+}
+
+function collNameFor(kind){ return kind==='asso' ? 'associations' : kind==='firm' ? 'firms' : 'representatives'; }
+function arrFor(kind){ return kind==='asso' ? ASSOS : kind==='firm' ? FIRMS : REPS; }
+function lsKeyFor(kind){ return kind==='asso' ? LS_ASSO : kind==='firm' ? LS_FIRM : LS_REP; }
+
+async function saveRecord(kind, record){
+  const now = new Date().toISOString();
+  record.updatedAt = now;
+  const arr = arrFor(kind);
+  if(record.id){
+    const idx = arr.findIndex(r=>r.id===record.id);
+    if(idx>=0) arr[idx] = {...arr[idx], ...record};
+    if(!localMode){
+      try{ const {id, ...data} = record; await setDoc(doc(db, collNameFor(kind), id), data, {merge:true}); }catch(e){ console.warn('cloud save failed', e); }
+    }
+  } else {
+    record.createdAt = now;
+    if(!localMode){
+      try{
+        const ref = await addDoc(collection(db, collNameFor(kind)), record);
+        record.id = ref.id;
+      }catch(e){
+        console.warn('cloud add failed, using local id', e);
+        record.id = 'local_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+      }
+    } else {
+      record.id = 'local_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    }
+    arr.push(record);
+  }
+  lsSet(lsKeyFor(kind), arr);
+  return record;
+}
+
+async function deleteRecord(kind, id){
+  const arr = arrFor(kind);
+  const idx = arr.findIndex(r=>r.id===id);
+  if(idx>=0) arr.splice(idx,1);
+  lsSet(lsKeyFor(kind), arr);
+  if(!localMode){
+    try{ await deleteDoc(doc(db, collNameFor(kind), id)); }catch(e){ console.warn('cloud delete failed', e); }
+  }
+}
+
+/* ---------------- Validation helpers ---------------- */
+function cleanPhone(v){ return (v||'').replace(/\+91/g,'').replace(/[\s\-()]/g,''); }
+function isValidPhone(v){ return /^\d{10}$/.test(cleanPhone(v)); }
+function isValidEmail(v){ return v==='' || /^[\w.-]+@[\w.-]+\.\w+$/.test(v); }
+function isValidPin(v){ return /^\d{6}$/.test(v||''); }
+const GST_CODE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function isValidGST(v){
+  if(!/^[0-9A-Z]{15}$/.test(v||'')) return false;
+  let factor=2, sum=0;
+  for(let i=13;i>=0;i--){
+    let cp = GST_CODE.indexOf(v[i]);
+    let d = factor*cp;
+    d = Math.floor(d/36) + (d%36);
+    sum += d;
+    factor = (factor===2)?1:2;
+  }
+  const check = (36 - (sum%36))%36;
+  return GST_CODE[check] === v[14];
+}
+function isValidPAN(v){ return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v||''); }
+const VERHOEFF_D = [
+ [0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],
+ [4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],
+ [8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]];
+const VERHOEFF_P = [
+ [0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],[8,9,1,6,0,4,3,5,2,7],
+ [9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],[2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]];
+function isValidAadhaar(v){
+  if(!/^\d{12}$/.test(v||'')) return false;
+  let c=0;
+  const arr = v.split('').reverse().map(Number);
+  for(let i=0;i<arr.length;i++) c = VERHOEFF_D[c][VERHOEFF_P[i%8][arr[i]]];
+  return c===0;
+}
+function hasBadChars(v){ return /[<>#]/.test(v||''); }
+function toTitleCase(v){
+  if(!v) return v;
+  return v.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+function findCaseInsensitive(obj, val){
+  if(!val) return null;
+  const lower = val.toLowerCase();
+  const key = Object.keys(obj).find(k=>k.toLowerCase()===lower);
+  return key ? obj[key] : null;
+}
+const TITLE_CASE_FIELDS = new Set([
+  'assoName','assoGeoScope','firmName','firmArea','firmTown','firmDistrict','firmProvince','firmStreet',
+  'repName','repArea','repTown','repDistrict','repProvince','repStreet'
+]);
+
+function durationSince(dateStr){
+  if(!dateStr) return null;
+  const start = new Date(dateStr+'T00:00:00');
+  const now = new Date();
+  if(isNaN(start.getTime())) return null;
+  let y = now.getFullYear()-start.getFullYear();
+  let m = now.getMonth()-start.getMonth();
+  let d = now.getDate()-start.getDate();
+  if(d<0){ m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if(m<0){ y--; m+=12; }
+  return {y,m,d};
+}
+
+/* ---------------- Themes ---------------- */
+const THEMES = [
+ {bg:'#E3F2FD', input:'#F5FAFF', accent:'#1976D2', palette:['#1976D2','#00897B','#6A1B9A','#C2185B','#EF6C00','#2E7D32']},
+ {bg:'#E8F5E9', input:'#F3FBF3', accent:'#2E7D32', palette:['#2E7D32','#0277BD','#8E24AA','#D81B60','#F57C00','#00838F']},
+ {bg:'#F3E5F5', input:'#FAF3FB', accent:'#7B1FA2', palette:['#7B1FA2','#00897B','#1565C0','#C2185B','#EF6C00','#43A047']},
+ {bg:'#FFF3E0', input:'#FFF8ED', accent:'#EF6C00', palette:['#EF6C00','#1976D2','#6A1B9A','#C2185B','#2E7D32','#00838F']},
+ {bg:'#FCE4EC', input:'#FEF1F5', accent:'#C2185B', palette:['#C2185B','#00897B','#5E35B1','#EF6C00','#2E7D32','#0277BD']},
+ {bg:'#FFFDE7', input:'#FFFEF2', accent:'#F9A825', palette:['#F9A825','#1976D2','#8E24AA','#D81B60','#2E7D32','#00838F']},
+ {bg:'#E0F7FA', input:'#F0FCFD', accent:'#00838F', palette:['#00838F','#6A1B9A','#EF6C00','#C2185B','#2E7D32','#1976D2']},
+ {bg:'#F1F8E9', input:'#F8FCF3', accent:'#558B2F', palette:['#558B2F','#00897B','#1565C0','#C2185B','#EF6C00','#6A1B9A']},
+ {bg:'#EDE7F6', input:'#F6F3FB', accent:'#512DA8', palette:['#512DA8','#00838F','#EF6C00','#C2185B','#2E7D32','#1976D2']},
+ {bg:'#FBE9E7', input:'#FEF4F3', accent:'#D84315', palette:['#D84315','#1976D2','#6A1B9A','#00897B','#2E7D32','#C2185B']},
+ {bg:'#E1F5FE', input:'#F0FAFE', accent:'#0277BD', palette:['#0277BD','#EF6C00','#8E24AA','#C2185B','#2E7D32','#00838F']},
+ {bg:'#FFF8E1', input:'#FFFCF0', accent:'#FF8F00', palette:['#FF8F00','#1976D2','#6A1B9A','#C2185B','#2E7D32','#00838F']}
+];
+function applyTheme(idx){
+  const t = THEMES[idx];
+  const r = document.documentElement.style;
+  r.setProperty('--bg', t.bg); r.setProperty('--input-bg', t.input); r.setProperty('--accent', t.accent);
+  t.palette.forEach((c,i)=> r.setProperty(`--g${i+1}`, c));
+  lsSet(LS_THEME, idx);
+}
+function startThemeCycle(){
+  setInterval(()=>{
+    applyTheme(Math.floor(Math.random()*THEMES.length));
+  }, 10*60*1000); // auto random cycle every 10 minutes
+}
+
+/* ---------------- Keep bottom bar permanently attached, even when the keyboard opens ---------------- */
+if(window.visualViewport){
+  const vv = window.visualViewport;
+  function pinBottomBar(){
+    const bar = document.getElementById('bottomBar');
+    if(!bar) return;
+    const offset = window.innerHeight - vv.height - vv.offsetTop;
+    bar.style.bottom = Math.max(0, offset) + 'px';
+  }
+  vv.addEventListener('resize', pinBottomBar);
+  vv.addEventListener('scroll', pinBottomBar);
+  pinBottomBar();
+}
+
+/* ---------------- Keep focused field visible above fixed bottom bars ---------------- */
+document.addEventListener('focusin', (e)=>{
+  const el = e.target;
+  if(el.matches('input, select, textarea')){
+    setTimeout(()=>{
+      try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(err){}
+    }, 250);
+  }
+});
+
+/* ---------------- Event log (2-entry preview, expandable) ---------------- */
+let logHistory = [];
+let recentLines = ['Ready.'];
+let logExpanded = false;
+function logEvent(msg, opts={}){
+  recentLines.unshift(msg);
+  if(recentLines.length>2) recentLines.length = 2;
+  renderLogPreview();
+  if(!opts.transient){
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    logHistory.unshift(`[${time}] ${msg}`);
+    if(logHistory.length>50) logHistory.pop();
+    if(logExpanded) renderLogHistory();
+  }
+}
+function renderLogPreview(){
+  const prev = document.getElementById('eventLogPreview');
+  if(!prev) return;
+  prev.innerHTML = recentLines.map(m=>`<div class="log-preview-item">${m}</div>`).join('');
+}
+function renderLogHistory(){
+  const hist = document.getElementById('eventLogHistory');
+  if(!hist) return;
+  hist.innerHTML = logHistory.map(h=>`<div class="log-item">${h}</div>`).join('') || '<div class="log-item">No events yet.</div>';
+}
+function setLogExpanded(expanded){
+  logExpanded = expanded;
+  document.getElementById('eventLogHistory').style.display = expanded ? 'block' : 'none';
+  document.getElementById('logToggleIcon').textContent = expanded ? '▾' : '▴';
+  const app = document.getElementById('app');
+  if(app) app.classList.toggle('log-expanded', expanded);
+  if(expanded) renderLogHistory();
+}
+// Expand/collapse is tied only to the log area's own focus — not to any form field's focus.
+const logLine = document.getElementById('logLineClickable');
+logLine.setAttribute('tabindex', '0');
+logLine.addEventListener('focus', ()=> setLogExpanded(true));
+logLine.addEventListener('blur', ()=> setLogExpanded(false));
+logLine.addEventListener('click', ()=> logLine.focus());
+
+/* ---------------- Tamil / English toggle ---------------- */
+function applyLanguageUI(){
+  document.getElementById('langToggle').textContent = lang==='en' ? 'தமிழ்' : 'English';
+  document.getElementById('assoHeaderLabel').textContent = tr('Association');
+  document.getElementById('firmHeaderLabel').textContent = tr('Member Firms');
+  document.getElementById('repHeaderLabel').textContent = tr('Representatives');
+}
+document.getElementById('langToggle').addEventListener('click', ()=>{
+  lang = (lang==='en') ? 'ta' : 'en';
+  lsSet(LS_LANG, lang);
+  applyLanguageUI();
+  // Force search boxes/lists/forms to rebuild so their static text picks up the new language.
+  document.getElementById('assoBody').innerHTML = '';
+  document.getElementById('firmBody').innerHTML = '';
+  document.getElementById('repBody').innerHTML = '';
+  renderAll();
+  refreshActionBar();
+});
+
+
+/* ---------------- Learning helpers ---------------- */
+function ensureFreq(obj, key){
+  if(!key) return;
+  obj[key] = (obj[key]||0)+1;
+}
+function topByFreq(obj, limit=20){
+  return Object.keys(obj).sort((a,b)=>obj[b]-obj[a]).slice(0,limit);
+}
+function learnAddress(area, town, district, province, pin){
+  if(area){
+    learning.areaSuggestions[area] = { town: town||'', district: district||'', pin: pin||'' };
+  }
+  if(town){
+    learning.townSuggestions[town] = { district: district||'', province: province||'', pin: pin||'' };
+  }
+  saveLearning();
+}
+function learnGeoScope(type, value){
+  if(!type || !value) return;
+  if(!learning.geoScopes[type]) learning.geoScopes[type]=[];
+  if(!learning.geoScopes[type].includes(value)) learning.geoScopes[type].push(value);
+  saveLearning();
+}
+function geoScopeOptions(type){
+  const set = new Set(learning.geoScopes[type] || []);
+  if(type==='area'){
+    Object.keys(learning.areaSuggestions).forEach(v=>set.add(v));
+    FIRMS.forEach(f=>{ if(f.firmArea) set.add(f.firmArea); });
+    REPS.forEach(r=>{ if(r.repArea) set.add(r.repArea); });
+  } else if(type==='town/city'){
+    Object.keys(learning.townSuggestions).forEach(v=>set.add(v));
+    FIRMS.forEach(f=>{ if(f.firmTown) set.add(f.firmTown); });
+    REPS.forEach(r=>{ if(r.repTown) set.add(r.repTown); });
+  } else if(type==='district'){
+    Object.values(learning.areaSuggestions).forEach(v=>{ if(v.district) set.add(v.district); });
+    Object.values(learning.townSuggestions).forEach(v=>{ if(v.district) set.add(v.district); });
+    FIRMS.forEach(f=>{ if(f.firmDistrict) set.add(f.firmDistrict); });
+    REPS.forEach(r=>{ if(r.repDistrict) set.add(r.repDistrict); });
+  } else if(type==='province'){
+    Object.values(learning.townSuggestions).forEach(v=>{ if(v.province) set.add(v.province); });
+    FIRMS.forEach(f=>{ if(f.firmProvince) set.add(f.firmProvince); });
+    REPS.forEach(r=>{ if(r.repProvince) set.add(r.repProvince); });
+  }
+  return Array.from(set).filter(Boolean).sort();
+}
+
+/* ---------------- Field definitions ---------------- */
+const ASSO_FIELDS = [
+ {id:'assoName', label:'Association Name', type:'text', max:60, required:true},
+ {id:'assoReg', label:'Registration No.', type:'text', max:30},
+ {id:'assoParent', label:'Parent Association', type:'parent', coll:'asso'},
+ {id:'assoPhone', label:'Phone', type:'phone', required:true},
+ {id:'assoEmail', label:'Email', type:'email'},
+ {id:'assoGeoType', label:'Geo Type', type:'geotype', required:true},
+ {id:'assoGeoScope', label:'Geo Scope', type:'geoscope', required:true, max:60},
+];
+const FIRM_FIELDS = [
+ {id:'firmName', label:'Firm Name', type:'text', max:60, required:true},
+ {id:'firmNameTa', label:'Name (Tamil)', type:'text', max:60},
+ {id:'firmParent', label:'Parent Firm', type:'parent', coll:'firm'},
+ {id:'firmCategory', label:'Business Category', type:'suggest', source:'firmCategories', max:15},
+ {id:'firmGst', label:'GST No.', type:'gst', max:15},
+ {id:'firmPan', label:'PAN No.', type:'pan', max:10},
+ {id:'firmPhone', label:'Phone', type:'phone'},
+ {id:'firmEmail', label:'Email', type:'email'},
+ {id:'firmNotes', label:'Notes', type:'textarea', max:300},
+ {id:'firmDoor', label:'Door No.', type:'text', max:7},
+ {id:'firmStreet', label:'Street Name', type:'suggest', source:'streetSuggestions', max:60},
+ {id:'firmArea', label:'Area', type:'area', max:60},
+ {id:'firmTown', label:'Town', type:'town', max:60},
+ {id:'firmDistrict', label:'District', type:'text', max:60},
+ {id:'firmProvince', label:'Province', type:'text', max:30, def:'Vellore'},
+ {id:'firmPin', label:'Pincode', type:'pin', max:6},
+];
+const REP_FIELDS = [
+ {id:'repName', label:'Representative Name', type:'text', max:60, required:true},
+ {id:'repNameTa', label:'Name (Tamil)', type:'text', max:60},
+ {id:'repParent', label:'Parent Representative', type:'parent', coll:'rep'},
+ {id:'repRelation', label:'Relation', type:'suggest', source:'repRelations', max:15},
+ {id:'repPhone1', label:'Phone 1', type:'phone', required:true},
+ {id:'repPhone2', label:'Phone 2', type:'phone'},
+ {id:'repEmail', label:'Email', type:'email'},
+ {id:'repAadhar', label:'Aadhaar No.', type:'aadhar', max:12},
+ {id:'repDob', label:'Date of Birth', type:'dob', max:60},
+ {id:'repAnniv', label:'Anniversary', type:'anniv', max:60},
+ {id:'repDoor', label:'Door No.', type:'text', max:7},
+ {id:'repStreet', label:'Street Name', type:'suggest', source:'streetSuggestions', max:60},
+ {id:'repArea', label:'Area', type:'area', max:60},
+ {id:'repTown', label:'Town', type:'town', max:60},
+ {id:'repDistrict', label:'District', type:'text', max:60},
+ {id:'repProvince', label:'Province', type:'text', max:30, def:'Vellore'},
+ {id:'repPin', label:'Pincode', type:'pin', max:6},
+];
+const GEO_TYPES = ['area','town/city','district','province'];
+
+/* ---------------- App state ---------------- */
+const state = {
+  active: 'asso',            // asso | firm | rep
+  selAsso: null, selFirm: null, selRep: null,
+  prevSel: { asso: null, firm: null, rep: null },
+  mode: { asso:'browse', firm:'browse', rep:'browse' }, // browse | new | edit
+  search: { asso:'', firm:'', rep:'' }
+};
+
+function nameOf(kind, id){
+  const arr = arrFor(kind);
+  const r = arr.find(x=>x.id===id);
+  if(!r) return '';
+  return r.assoName || r.firmName || r.repName || '';
+}
+
+/* ---------------- Panels: expand/collapse ---------------- */
+function setActivePanel(p){
+  state.active = p;
+  ['asso','firm','rep'].forEach(k=>{
+    document.getElementById('panel-'+k).classList.toggle('expanded', k===p);
+    document.getElementById('panel-'+k).classList.toggle('collapsed', k!==p);
+  });
+  refreshActionBar();
+  renderAll();
+}
+document.querySelectorAll('.panel-header').forEach(h=>{
+  h.addEventListener('click', ()=> setActivePanel(h.dataset.toggle));
+});
+
+/* ---------------- Descendant check for parent pickers ---------------- */
+function isDescendant(kind, candidateId, ofId){
+  const arr = arrFor(kind);
+  const parentField = kind==='asso'?'assoParent':kind==='firm'?'firmParent':'repParent';
+  let cur = candidateId;
+  const seen = new Set();
+  while(cur){
+    if(seen.has(cur)) break;
+    seen.add(cur);
+    const rec = arr.find(r=>r.id===cur);
+    if(!rec) break;
+    if(rec[parentField] === ofId) return true;
+    cur = rec[parentField];
+  }
+  return false;
+}
+function parentOptions(kind, selfId){
+  const arr = arrFor(kind);
+  return arr.filter(r=> r.id!==selfId && !isDescendant(kind, r.id, selfId));
+}
+
+/* ---------------- Field rendering ---------------- */
+const FULL_WIDTH_TYPES = ['textarea'];
+const CH_BY_TYPE = { phone:12, email:22, pin:8, gst:17, pan:12, aadhar:14, dob:13, anniv:13, geotype:14, parent:20 };
+function fieldWidthStyle(f){
+  const max = f.max || (f.type==='geoscope' ? 60 : 0);
+  if(FULL_WIDTH_TYPES.includes(f.type) || max>=50) return 'flex:1 1 100%;width:100%;';
+  const ch = CH_BY_TYPE[f.type] || Math.max(9, Math.min((max||18)+2, 26));
+  return `flex:0 0 auto;width:calc(${ch}ch + 20px);max-width:100%;`;
+}
+function fieldGroup(f){
+  const id = f.id.toLowerCase();
+  if(f.type==='parent' || id.includes('name')) return 'g1';       // identity
+  if(f.type==='phone' || f.type==='email') return 'g2';           // contact
+  if(f.type==='gst' || f.type==='pan' || f.type==='aadhar') return 'g4'; // legal ID
+  if(f.type==='dob' || f.type==='anniv') return 'g5';             // dates
+  if(f.type==='area' || f.type==='town' || f.type==='geoscope' || f.type==='geotype'
+     || id.includes('district') || id.includes('province') || id.includes('door')
+     || id.includes('pin') || id.includes('street')) return 'g3'; // address
+  return 'g6';                                                     // category / notes / registration / other
+}
+function fieldWrap(f, innerHtml){
+  return `<div class="field" data-grp="${fieldGroup(f)}" style="${fieldWidthStyle(f)}" data-field="${f.id}">
+    <label>${tr(f.label)}${f.required?' *':''}</label>
+    ${innerHtml}
+    <span class="errmsg" id="err_${f.id}"></span>
+  </div>`;
+}
+function renderChoiceInput(f, opts, val, dis){
+  const current = opts.find(o=>o.value===val);
+  const labelText = current ? current.label : '';
+  if(opts.length < 9){
+    return `<input type="hidden" id="fld_${f.id}" value="${val||''}">
+      <input type="text" id="disp_${f.id}" class="choicebox" readonly value="${labelText}" placeholder="${tr('Tap to choose')}" ${dis}>`;
+  }
+  const optHtml = opts.map(o=>`<option value="${o.value}" ${o.value===val?'selected':''}>${o.label}</option>`).join('');
+  return `<select id="fld_${f.id}" ${dis}><option value="">${tr('— None —')}</option>${optHtml}</select>`;
+}
+
+function renderField(kind, f, data, editable){
+  const val = data[f.id] ?? (f.def || '');
+  const dis = editable ? '' : 'disabled';
+  if(f.type==='textarea'){
+    return fieldWrap(f, `<textarea id="fld_${f.id}" maxlength="${f.max}" ${dis} rows="3">${val}</textarea>`);
+  }
+  if(f.type==='parent'){
+    const opts = parentOptions(f.coll, data.id).map(o=>({value:o.id, label:o.assoName||o.firmName||o.repName}));
+    return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
+  }
+  if(f.type==='geotype'){
+    const opts = GEO_TYPES.map(t=>({value:t, label:tr(t)}));
+    return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
+  }
+  if(f.type==='geoscope'){
+    const type = data.assoGeoType || '';
+    const list = geoScopeOptions(type);
+    const dl = list.map(v=>`<option value="${v}">`).join('');
+    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="60" value="${val}" ${dis} ${type?'':`placeholder="${tr('Pick a Geo Type first')}"`}>
+      <datalist id="dl_${f.id}">${dl}</datalist>`);
+  }
+  if(f.type==='suggest'){
+    const freqObj = learning[f.source] || {};
+    const list = topByFreq(freqObj);
+    const dl = list.map(v=>`<option value="${v}">`).join('');
+    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="${f.max}" value="${val}" ${dis}>
+      <datalist id="dl_${f.id}">${dl}</datalist>`);
+  }
+  if(f.type==='area' || f.type==='town'){
+    return fieldWrap(f, `<div style="position:relative">
+      <input id="fld_${f.id}" type="text" maxlength="${f.max}" value="${val}" ${dis} autocomplete="off" placeholder="Start typing to see saved ${f.label.toLowerCase()}s">
+      <div class="suggest-box" id="sugg_${f.id}" style="display:none"></div>
+    </div>`);
+  }
+  if(f.type==='dob'){
+    const dur = durationSince(val);
+    let lbl = '';
+    if(dur){
+      lbl = `Age: ${dur.y}y ${dur.m}m ${dur.d}d ${dur.y<18 ? '<span class="badge">Minor</span>' : ''}`;
+    }
+    return fieldWrap(f, `<input id="fld_${f.id}" type="date" value="${val}" ${dis} max="${new Date().toISOString().slice(0,10)}">
+      <span class="age-label" id="calc_${f.id}">${lbl}</span>`);
+  }
+  if(f.type==='anniv'){
+    const dur = durationSince(val);
+    let lbl = dur ? `Married for: ${dur.y}y ${dur.m}m ${dur.d}d` : '';
+    return fieldWrap(f, `<input id="fld_${f.id}" type="date" value="${val}" ${dis} max="${new Date().toISOString().slice(0,10)}">
+      <span class="age-label" id="calc_${f.id}">${lbl}</span>`);
+  }
+  if(f.type==='gst' || f.type==='pan' || f.type==='aadhar'){
+    const ph = f.type==='gst' ? 'e.g. 33ABCDE1234F1Z5' : f.type==='pan' ? 'e.g. ABCDE1234F' : 'e.g. 234512345678';
+    const numeric = f.type==='aadhar' ? 'inputmode="numeric" pattern="[0-9]*"' : 'inputmode="text"';
+    return fieldWrap(f, `<input id="fld_${f.id}" type="text" maxlength="${f.max}" value="${val}" ${dis} placeholder="${ph}" ${numeric} style="text-transform:uppercase">`);
+  }
+  // text / phone / email / pin default
+  const inputType = f.type==='email' ? 'email' : 'text';
+  const ph = f.type==='phone' ? 'e.g. 9876543210' : f.type==='email' ? 'e.g. name@example.com' : f.type==='pin' ? 'e.g. 632006' : '';
+  const numeric = f.type==='phone' ? 'inputmode="tel" pattern="[0-9]*"' : f.type==='pin' ? 'inputmode="numeric" pattern="[0-9]*"' : '';
+  return fieldWrap(f, `<input id="fld_${f.id}" type="${inputType}" maxlength="${f.max||100}" value="${val}" ${dis} ${numeric} ${ph?`placeholder="${ph}"`:''}>`);
+}
+
+function renderForm(kind, fields, data, editable){
+  return `<div class="field-grid">${fields.map(f=>renderField(kind, f, data, editable)).join('')}</div>`;
+}
+
+/* ---------------- Address autofill + custom suggestion dropdowns ---------------- */
+function relatedFieldIds(kind, f){
+  const prefix = kind==='firm' ? 'firm' : 'rep';
+  return {
+    town: prefix+'Town', district: prefix+'District', province: prefix+'Province', pin: prefix+'Pin'
+  };
+}
+function applyAddressAutofill(kind, f, value){
+  const src = f.type==='area' ? learning.areaSuggestions : learning.townSuggestions;
+  const hit = findCaseInsensitive(src, value);
+  if(!hit) return;
+  const ids = relatedFieldIds(kind, f);
+  const filled = [];
+  if(f.type==='area'){
+    const townEl = document.getElementById('fld_'+ids.town);
+    const distEl = document.getElementById('fld_'+ids.district);
+    const pinEl = document.getElementById('fld_'+ids.pin);
+    if(townEl && hit.town){ townEl.value = hit.town; filled.push('Town'); }
+    if(distEl && hit.district){ distEl.value = hit.district; filled.push('District'); }
+    if(pinEl && hit.pin){ pinEl.value = hit.pin; filled.push('Pin'); }
+  } else {
+    const distEl = document.getElementById('fld_'+ids.district);
+    const provEl = document.getElementById('fld_'+ids.province);
+    const pinEl = document.getElementById('fld_'+ids.pin);
+    if(distEl && hit.district){ distEl.value = hit.district; filled.push('District'); }
+    if(provEl && hit.province){ provEl.value = hit.province; filled.push('Province'); }
+    if(pinEl && hit.pin){ pinEl.value = hit.pin; filled.push('Pin'); }
+  }
+  if(filled.length) logEvent(`"${value}" matched a saved address — filled ${filled.join(', ')}.`);
+}
+function showAddressSuggestions(f, kind, el){
+  const box = document.getElementById('sugg_'+f.id);
+  if(!box) return;
+  const q = el.value.trim().toLowerCase();
+  if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+  const src = f.type==='area' ? learning.areaSuggestions : learning.townSuggestions;
+  const matches = Object.keys(src).filter(k=>k.toLowerCase().includes(q)).slice(0,6);
+  if(matches.length===0){
+    box.style.display='none'; box.innerHTML='';
+    logEvent(`No saved ${f.label.toLowerCase()} matches "${el.value}" yet — it will be remembered once you save.`, {transient:true});
+    return;
+  }
+  box.innerHTML = matches.map(k=>{
+    const v = src[k];
+    const line2 = f.type==='area' ? `${v.town||'—'}, Pin ${v.pin||'—'}` : `Pin ${v.pin||'—'} · ${v.district||'—'}`;
+    return `<div class="suggest-row" data-val="${k}"><b>${k}</b><small>${line2}</small></div>`;
+  }).join('');
+  box.style.display='block';
+  box.querySelectorAll('.suggest-row').forEach(row=>{
+    row.addEventListener('mousedown', (e)=>{
+      e.preventDefault();
+      el.value = row.dataset.val;
+      box.style.display='none';
+      applyAddressAutofill(kind, f, row.dataset.val);
+    });
+  });
+  logEvent(`${matches.length} saved ${f.label.toLowerCase()} suggestion${matches.length>1?'s':''} for "${el.value}".`, {transient:true});
+}
+
+/* ---------------- Live validation wiring ---------------- */
+function wireValidation(kind, fields, data){
+  fields.forEach(f=>{
+    const el = document.getElementById('fld_'+f.id);
+    if(!el) return;
+    const errEl = document.getElementById('err_'+f.id);
+    const dispEl = document.getElementById('disp_'+f.id);
+    const update = ()=>{
+      let v = el.value;
+      let ok = true, msg = '';
+      if(f.type==='phone'){
+        ok = v==='' ? !f.required : isValidPhone(v);
+        msg = v==='' ? (f.required ? 'A 10-digit mobile number is required, e.g. 9876543210.' : '')
+          : ok ? '✓ Looks good' : 'Please enter exactly 10 digits, e.g. 9876543210.';
+      }
+      else if(f.type==='email'){
+        ok = isValidEmail(v);
+        msg = v==='' ? '' : ok ? '✓ Looks good' : 'Please enter an email like name@example.com.';
+      }
+      else if(f.type==='pin'){
+        ok = v==='' ? true : isValidPin(v);
+        msg = v==='' ? '' : ok ? '✓ Looks good' : 'A postal code has exactly 6 digits, e.g. 632006.';
+      }
+      else if(f.type==='gst'){
+        v = v.toUpperCase(); el.value=v;
+        ok = v==='' ? true : isValidGST(v);
+        msg = v==='' ? '' : ok ? '✓ Valid GSTIN' : 'A GSTIN has 15 characters like 33ABCDE1234F1Z5 — please check the digits and letters.';
+      }
+      else if(f.type==='pan'){
+        v = v.toUpperCase(); el.value=v;
+        ok = v==='' ? true : isValidPAN(v);
+        msg = v==='' ? '' : ok ? '✓ Valid PAN' : 'A PAN looks like ABCDE1234F — 5 letters, 4 digits, 1 letter.';
+      }
+      else if(f.type==='aadhar'){
+        ok = v==='' ? true : isValidAadhaar(v);
+        msg = v==='' ? '' : ok ? '✓ Valid Aadhaar' : 'Please enter a valid 12-digit Aadhaar number — double-check the digits.';
+      }
+      else if(f.type==='text' || f.type==='suggest' || f.type==='area' || f.type==='town'){
+        ok = !hasBadChars(v);
+        msg = ok ? '' : 'Please avoid the characters < > # in this field.';
+        if(ok && f.required && v===''){ ok=false; msg='This is required — please fill it in.'; }
+      }
+      else if(f.required && v===''){ ok=false; msg='This is required — please choose a value.'; }
+      el.classList.toggle('err', !ok);
+      if(dispEl) dispEl.classList.toggle('err', !ok);
+      if(errEl){ errEl.textContent = msg; errEl.className = ok ? 'okmsg' : 'errmsg'; }
+      return ok;
+    };
+    el.addEventListener('input', update);
+    el.addEventListener('blur', ()=>{
+      if(TITLE_CASE_FIELDS.has(f.id) && el.value){ el.value = toTitleCase(el.value); }
+      update();
+    });
+
+    // Parent / GeoType: tap opens a picker popup straight away when there are few fixed options
+    if(dispEl){
+      let opts = [];
+      if(f.type==='parent') opts = parentOptions(f.coll, data.id).map(o=>({value:o.id, label:o.assoName||o.firmName||o.repName}));
+      if(f.type==='geotype') opts = GEO_TYPES.map(t=>({value:t, label:tr(t)}));
+      const openPicker = ()=>{
+        showPopup(tr(f.label), opts.map(o=>({label:o.label, value:o.value})), el.value, (v)=>{
+          el.value = v;
+          const chosen = opts.find(o=>o.value===v);
+          dispEl.value = chosen ? chosen.label : '';
+          el.dispatchEvent(new Event('change'));
+          el.dispatchEvent(new Event('input'));
+        });
+      };
+      dispEl.addEventListener('click', openPicker);
+      dispEl.addEventListener('focus', openPicker);
+    }
+
+    // Area/Town: custom suggestion dropdown + autofill
+    if(f.type==='area' || f.type==='town'){
+      el.addEventListener('focus', ()=> showAddressSuggestions(f, kind, el));
+      el.addEventListener('input', ()=> showAddressSuggestions(f, kind, el));
+      el.addEventListener('blur', ()=>{
+        setTimeout(()=>{
+          const box = document.getElementById('sugg_'+f.id);
+          if(box) box.style.display='none';
+        }, 150);
+        if(el.value) applyAddressAutofill(kind, f, el.value);
+      });
+    }
+    if(f.type==='dob' || f.type==='anniv'){
+      el.addEventListener('change', ()=>{
+        const dur = durationSince(el.value);
+        const lblEl = document.getElementById('calc_'+f.id);
+        if(lblEl){
+          if(f.type==='dob'){
+            lblEl.innerHTML = dur ? `Age: ${dur.y}y ${dur.m}m ${dur.d}d ${dur.y<18?'<span class="badge">Minor</span>':''}` : '';
+          } else {
+            lblEl.textContent = dur ? `Married for: ${dur.y}y ${dur.m}m ${dur.d}d` : '';
+          }
+        }
+      });
+    }
+    if(f.type==='geotype'){
+      el.addEventListener('change', ()=>{
+        data.assoGeoType = el.value;
+        const gsField = fields.find(x=>x.type==='geoscope');
+        const gsHolder = document.querySelector(`[data-field="${gsField.id}"]`);
+        gsHolder.outerHTML = renderField(kind, gsField, data, true);
+        wireValidation(kind, [gsField], data);
+        logEvent(`Geo Type set to "${el.value}" — Geo Scope suggestions updated.`, {transient:true});
+      });
+    }
+  });
+}
+
+function validateAll(fields){
+  let firstErrEl = null, allOk = true;
+  fields.forEach(f=>{
+    const el = document.getElementById('fld_'+f.id);
+    if(!el) return;
+    if(TITLE_CASE_FIELDS.has(f.id) && el.value){ el.value = toTitleCase(el.value); }
+    el.dispatchEvent(new Event('input'));
+    if(el.classList.contains('err') || (f.required && el.value==='')){
+      allOk = false;
+      if(f.required && el.value===''){ el.classList.add('err'); }
+      if(!firstErrEl) firstErrEl = el;
+    }
+  });
+  if(!allOk && firstErrEl) firstErrEl.focus();
+  return allOk;
+}
+
+function collectData(fields, existing){
+  const out = {...existing};
+  fields.forEach(f=>{
+    const el = document.getElementById('fld_'+f.id);
+    if(el) out[f.id] = el.value;
+  });
+  return out;
+}
+
+/* ---------------- Panel renderers ---------------- */
+function debounce(fn, ms){
+  let t;
+  return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+}
+
+function renderAssoPanel(){
+  const body = document.getElementById('assoBody');
+  const summary = document.getElementById('assoSummary');
+  summary.textContent = state.selAsso ? nameOf('asso', state.selAsso) : tr('Select or create');
+
+  if(state.mode.asso==='browse'){
+    if(!document.getElementById('assoSearch')){
+      body.innerHTML = `<input class="searchbox" id="assoSearch" placeholder="${tr('Search associations…')}" value="${state.search.asso}">
+        <div id="assoList"></div>`;
+    }
+    renderAssoList();
+  } else {
+    const data = state.mode.asso==='new' ? {} : (ASSOS.find(a=>a.id===state.selAsso) || {});
+    body.innerHTML = `<form id="assoForm">${renderForm('asso', ASSO_FIELDS, data, true)}</form>`;
+    wireValidation('asso', ASSO_FIELDS, data);
+  }
+}
+function renderAssoList(){
+  const list = document.getElementById('assoList');
+  if(!list) return;
+  const q = state.search.asso.toLowerCase();
+  const rows = ASSOS.filter(a=> !q || (a.assoName||'').toLowerCase().includes(q));
+  if(!rows.length){
+    list.innerHTML = `<div class="empty-note">${tr('No associations yet. Tap New to add one.')}</div>`;
+    return;
+  }
+  list.innerHTML = `<table class="data-table">
+    <thead><tr><th>${tr('Association Name')}</th><th>${tr('Geographical Scope')}</th></tr></thead>
+    <tbody>
+      ${rows.map(a=>`<tr class="list-row ${a.id===state.selAsso?'selected':''}" data-id="${a.id}">
+        <td>${a.assoName||'(unnamed)'}</td>
+        <td>${a.assoGeoScope||'—'}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+const renderAssoListDebounced = debounce(renderAssoList, 120);
+
+function renderFirmPanel(){
+  const body = document.getElementById('firmBody');
+  const summary = document.getElementById('firmSummary');
+  if(!state.selAsso){
+    summary.textContent = tr('Select an association first');
+    body.innerHTML = `<div class="empty-note">${tr('Select an Association above to see its firms.')}</div>`;
+    return;
+  }
+  summary.textContent = state.selFirm ? nameOf('firm', state.selFirm) : `Under: ${nameOf('asso', state.selAsso)}`;
+  if(state.mode.firm==='browse'){
+    if(!document.getElementById('firmSearch')){
+      body.innerHTML = `<input class="searchbox" id="firmSearch" placeholder="${tr('Search firms…')}" value="${state.search.firm}">
+        <div id="firmList"></div>`;
+    }
+    renderFirmList();
+  } else {
+    const data = state.mode.firm==='new' ? {assoId: state.selAsso} : (FIRMS.find(f=>f.id===state.selFirm) || {});
+    body.innerHTML = `<form id="firmForm">${renderForm('firm', FIRM_FIELDS, data, true)}</form>`;
+    wireValidation('firm', FIRM_FIELDS, data);
+  }
+}
+function renderFirmList(){
+  const list = document.getElementById('firmList');
+  if(!list) return;
+  const q = state.search.firm.toLowerCase();
+  list.innerHTML = FIRMS.filter(f=> f.assoId===state.selAsso && (!q || (f.firmName||'').toLowerCase().includes(q))).map(f=>`
+    <div class="list-row ${f.id===state.selFirm?'selected':''}" data-id="${f.id}">
+      <div><div class="lr-name">${f.firmName||'(unnamed)'}</div><div class="lr-sub">${f.firmTown||''} · ${f.firmCategory||''}</div></div>
+    </div>`).join('') || `<div class="empty-note">${tr('No firms under this association yet.')}</div>`;
+}
+const renderFirmListDebounced = debounce(renderFirmList, 120);
+
+function renderRepPanel(){
+  const body = document.getElementById('repBody');
+  const summary = document.getElementById('repSummary');
+  if(!state.selFirm){
+    summary.textContent = tr('Select a firm first');
+    body.innerHTML = `<div class="empty-note">${tr('Select a Member Firm above to see its representatives.')}</div>`;
+    return;
+  }
+  summary.textContent = state.selRep ? nameOf('rep', state.selRep) : `Under: ${nameOf('firm', state.selFirm)}`;
+  if(state.mode.rep==='browse'){
+    if(!document.getElementById('repSearch')){
+      body.innerHTML = `<input class="searchbox" id="repSearch" placeholder="${tr('Search representatives…')}" value="${state.search.rep}">
+        <div id="repList"></div>`;
+    }
+    renderRepList();
+  } else {
+    const data = state.mode.rep==='new' ? {firmId: state.selFirm} : (REPS.find(r=>r.id===state.selRep) || {});
+    body.innerHTML = `<form id="repForm">${renderForm('rep', REP_FIELDS, data, true)}</form>`;
+    wireValidation('rep', REP_FIELDS, data);
+  }
+}
+function renderRepList(){
+  const list = document.getElementById('repList');
+  if(!list) return;
+  const q = state.search.rep.toLowerCase();
+  list.innerHTML = REPS.filter(r=> r.firmId===state.selFirm && (!q || (r.repName||'').toLowerCase().includes(q))).map(r=>`
+    <div class="list-row ${r.id===state.selRep?'selected':''}" data-id="${r.id}">
+      <div><div class="lr-name">${r.repName||'(unnamed)'}</div><div class="lr-sub">${r.repRelation||''} · ${r.repPhone1||''}</div></div>
+    </div>`).join('') || `<div class="empty-note">${tr('No representatives for this firm yet.')}</div>`;
+}
+const renderRepListDebounced = debounce(renderRepList, 120);
+
+/* Delegated list/search listeners — bound once to stable containers, not re-bound on every render */
+function setupListDelegation(){
+  const assoBody = document.getElementById('assoBody');
+  assoBody.addEventListener('input', e=>{
+    if(e.target.id==='assoSearch'){ state.search.asso = e.target.value; renderAssoListDebounced(); }
+  });
+  assoBody.addEventListener('click', e=>{
+    const list = document.getElementById('assoList');
+    const row = e.target.closest('.list-row');
+    if(row && list && list.contains(row)){
+      state.selAsso = row.dataset.id; state.selFirm=null; state.selRep=null;
+      const hasFirms = FIRMS.some(f=>f.assoId===state.selAsso);
+      state.mode.rep = 'browse';
+      if(hasFirms){
+        state.mode.firm = 'browse';
+        setActivePanel('firm');
+        logEvent(`Selected association "${nameOf('asso', state.selAsso)}" — showing its firms.`);
+      } else {
+        state.prevSel.firm = null;
+        state.mode.firm = 'new';
+        setActivePanel('firm');
+        logEvent(`No firms yet under "${nameOf('asso', state.selAsso)}" — opening a new firm entry.`);
+      }
+    }
+  });
+
+  const firmBody = document.getElementById('firmBody');
+  firmBody.addEventListener('input', e=>{
+    if(e.target.id==='firmSearch'){ state.search.firm = e.target.value; renderFirmListDebounced(); }
+  });
+  firmBody.addEventListener('click', e=>{
+    const list = document.getElementById('firmList');
+    const row = e.target.closest('.list-row');
+    if(row && list && list.contains(row)){
+      state.selFirm = row.dataset.id; state.selRep=null;
+      const hasReps = REPS.some(r=>r.firmId===state.selFirm);
+      if(hasReps){
+        state.mode.rep = 'browse';
+        setActivePanel('rep');
+        logEvent(`Selected firm "${nameOf('firm', state.selFirm)}" — showing its representatives.`);
+      } else {
+        state.prevSel.rep = null;
+        state.mode.rep = 'new';
+        setActivePanel('rep');
+        logEvent(`No representatives yet for "${nameOf('firm', state.selFirm)}" — opening a new representative entry.`);
+      }
+    }
+  });
+
+  const repBody = document.getElementById('repBody');
+  repBody.addEventListener('input', e=>{
+    if(e.target.id==='repSearch'){ state.search.rep = e.target.value; renderRepListDebounced(); }
+  });
+  repBody.addEventListener('click', e=>{
+    const list = document.getElementById('repList');
+    const row = e.target.closest('.list-row');
+    if(row && list && list.contains(row)){
+      state.selRep = row.dataset.id;
+      renderAll(); refreshActionBar();
+      logEvent(`Selected representative "${nameOf('rep', state.selRep)}".`, {transient:true});
+    }
+  });
+}
+
+function renderAll(){
+  renderAssoPanel(); renderFirmPanel(); renderRepPanel();
+}
+
+/* ---------------- Action bar logic ---------------- */
+function refreshActionBar(){
+  const kind = state.active;
+  const mode = state.mode[kind];
+  const hasSel = kind==='asso'?state.selAsso : kind==='firm'?state.selFirm : state.selRep;
+  const spaceName = tr(kind==='asso'?'Assoc':kind==='firm'?'Firm':'Rep');
+
+  const ab1label = document.getElementById('ab1label');
+  const ab2 = document.getElementById('ab2'); // Delete
+  const ab2label = document.getElementById('ab2label');
+  const ab3 = document.getElementById('ab3'); // New / Discard
+  const ab3label = document.getElementById('ab3label');
+  const ab4 = document.getElementById('ab4'); // Edit/Save
+  const ab4label = document.getElementById('ab4label');
+
+  ab1label.textContent = spaceName;
+  ab2label.textContent = `${tr('Delete')} ${spaceName}`;
+
+  ab2.disabled = !hasSel || mode!=='browse';
+
+  if(mode==='browse'){
+    ab3.disabled = (kind==='firm' && !state.selAsso) || (kind==='rep' && !state.selFirm);
+    ab3label.textContent = `${tr('New')} ${spaceName}`;
+    document.querySelector('#ab3 .abicon').textContent = '➕';
+  } else {
+    ab3.disabled = false;
+    ab3label.textContent = `${tr('Discard')} ${spaceName}`;
+    document.querySelector('#ab3 .abicon').textContent = '↩️';
+  }
+
+  if(mode==='browse'){
+    ab4.disabled = !hasSel;
+    ab4label.textContent = `${tr('Edit')} ${spaceName}`;
+    document.querySelector('#ab4 .abicon').textContent = '✏️';
+  } else {
+    ab4.disabled = false;
+    ab4label.textContent = `${tr('Save')} ${spaceName}`;
+    document.querySelector('#ab4 .abicon').textContent = '✔️';
+  }
+}
+
+document.getElementById('ab1').onclick = ()=>{
+  showPopup(tr('Navigate to…'), [
+    {label:tr('Association'), value:'asso'},
+    {label:tr('Member Firms'), value:'firm'},
+    {label:tr('Representative'), value:'rep'}
+  ], state.active, (v)=> setActivePanel(v));
+};
+
+document.getElementById('ab2').onclick = async ()=>{
+  const kind = state.active;
+  const id = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
+  if(!id) return;
+  const label = nameOf(kind, id) || 'this record';
+  showPopup(tr('Delete this record?'), [{label:tr('Yes, delete'), value:'yes'},{label:tr('Cancel'), value:'no'}], null, async (v)=>{
+    if(v==='yes'){
+      await deleteRecord(kind, id);
+      if(kind==='asso'){ state.selAsso=null; state.selFirm=null; state.selRep=null; }
+      if(kind==='firm'){ state.selFirm=null; state.selRep=null; }
+      if(kind==='rep'){ state.selRep=null; }
+      state.mode[kind]='browse';
+      renderAll(); refreshActionBar();
+      logEvent(`Deleted "${label}".`);
+    }
+  });
+};
+
+document.getElementById('ab3').onclick = ()=>{
+  const kind = state.active;
+  const mode = state.mode[kind];
+  if(mode==='browse'){
+    if(kind==='firm' && !state.selAsso){ alert(tr('Select an association first')+'.'); return; }
+    if(kind==='rep' && !state.selFirm){ alert(tr('Select a firm first')+'.'); return; }
+    state.prevSel[kind] = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
+    state.mode[kind] = 'new';
+    if(kind==='asso') state.selAsso=null;
+    if(kind==='firm') state.selFirm=null;
+    if(kind==='rep') state.selRep=null;
+    renderAll(); refreshActionBar();
+    const kindLabel = kind==='asso'?tr('Association'):kind==='firm'?tr('Member Firms'):tr('Representative');
+    logEvent(`Starting a new ${kindLabel} entry.`);
+  } else {
+    // Discard changes / cancel new entry
+    const wasNew = mode==='new';
+    state.mode[kind] = 'browse';
+    if(wasNew){
+      if(kind==='asso') state.selAsso = state.prevSel.asso;
+      if(kind==='firm') state.selFirm = state.prevSel.firm;
+      if(kind==='rep') state.selRep = state.prevSel.rep;
+    }
+    renderAll(); refreshActionBar();
+    logEvent('Discarded changes.', {transient:true});
+  }
+};
+
+document.getElementById('ab4').onclick = async ()=>{
+  const kind = state.active;
+  const mode = state.mode[kind];
+  const hasSel = kind==='asso'?state.selAsso : kind==='firm'?state.selFirm : state.selRep;
+
+  if(mode==='browse'){
+    if(!hasSel) return;
+    state.mode[kind] = 'edit';
+    renderAll(); refreshActionBar();
+    logEvent(`Editing "${nameOf(kind, hasSel)}".`);
+    return;
+  }
+
+  // Save (from new or edit)
+  const fields = kind==='asso'?ASSO_FIELDS:kind==='firm'?FIRM_FIELDS:REP_FIELDS;
+  if(!validateAll(fields)){
+    logEvent('Please fix the highlighted fields before saving.');
+    return;
+  }
+
+  let existing = {};
+  if(mode==='edit'){
+    existing = (kind==='asso'?ASSOS.find(a=>a.id===state.selAsso)
+      : kind==='firm'?FIRMS.find(f=>f.id===state.selFirm)
+      : REPS.find(r=>r.id===state.selRep)) || {};
+  } else {
+    if(kind==='firm') existing = {assoId: state.selAsso};
+    if(kind==='rep') existing = {firmId: state.selFirm};
+  }
+  const data = collectData(fields, existing);
+  const saved = await saveRecord(kind, data);
+
+  if(kind==='asso'){
+    learnGeoScope(saved.assoGeoType, saved.assoGeoScope);
+    state.selAsso = saved.id;
+  }
+  if(kind==='firm'){
+    learnAddress(saved.firmArea, saved.firmTown, saved.firmDistrict, saved.firmProvince, saved.firmPin);
+    ensureFreq(learning.firmCategories, saved.firmCategory);
+    ensureFreq(learning.streetSuggestions, saved.firmStreet);
+    saveLearning();
+    state.selFirm = saved.id;
+  }
+  if(kind==='rep'){
+    learnAddress(saved.repArea, saved.repTown, saved.repDistrict, saved.repProvince, saved.repPin);
+    ensureFreq(learning.repRelations, saved.repRelation);
+    ensureFreq(learning.streetSuggestions, saved.repStreet);
+    saveLearning();
+    state.selRep = saved.id;
+  }
+  state.mode[kind] = 'browse';
+  renderAll(); refreshActionBar();
+  logEvent(`Saved "${nameOf(kind, saved.id)}" successfully.`);
+};
+
+/* ---------------- Popup ---------------- */
+function showPopup(title, options, currentVal, onPick){
+  const root = document.getElementById('popupRoot');
+  const opts = options.map(o=>`<div class="popup-opt ${o.value===currentVal?'current':''}" data-v="${o.value}">${o.label}</div>`).join('');
+  root.innerHTML = `<div class="popup-overlay"><div class="popup-sheet">
+    <h3>${title}</h3><div id="popupOptsList">${opts}</div>
+    <button class="popup-close">${tr('Close')}</button>
+  </div></div>`;
+  root.querySelectorAll('.popup-opt').forEach(el=> el.addEventListener('click', ()=>{
+    onPick(el.dataset.v); root.innerHTML='';
+  }));
+  root.querySelector('.popup-close').addEventListener('click', ()=> root.innerHTML='');
+  root.querySelector('.popup-overlay').addEventListener('click', (e)=>{ if(e.target.classList.contains('popup-overlay')) root.innerHTML=''; });
+}
+
+/* ---------------- Init ---------------- */
+async function init(){
+  // 1) Show whatever is cached locally right away — no waiting on the network.
+  loadLocalOnly();
+  setupListDelegation();
+  applyLanguageUI();
+  const savedTheme = lsGet(LS_THEME, null);
+  applyTheme(savedTheme!==null ? savedTheme : Math.floor(Math.random()*THEMES.length));
+  setActivePanel('asso');
+  statusBar.textContent = 'Showing local data — connecting…';
+  logEvent(`Loaded ${ASSOS.length} association(s), ${FIRMS.length} firm(s), ${REPS.length} representative(s) from local cache.`);
+  startThemeCycle();
+
+  // 2) Connect and refresh from the cloud in the background; re-render only when it lands.
+  const connected = await initFirebase();
+  logEvent(statusBar.textContent);
+  if(connected){
+    const synced = await syncFromCloud();
+    if(synced){
+      renderAll(); refreshActionBar();
+      logEvent(`Synced ${ASSOS.length} association(s), ${FIRMS.length} firm(s), ${REPS.length} representative(s) from the cloud.`);
+    }
+  }
+}
+init();
+</script>
+</body>
+</html>
