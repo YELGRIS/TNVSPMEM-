@@ -14,7 +14,6 @@
 html,body{margin:0;padding:0;height:100%;background:var(--bg);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);font-size:14px;}
 #app{display:flex;flex-direction:column;min-height:100vh;}
 #topStrip{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--panel);border-bottom:3px solid var(--accent);position:sticky;top:0;z-index:20;gap:8px;}
-#langToggle{background:var(--accent);border:none;border-radius:10px;font-size:14px;padding:6px 14px;color:#fff;font-weight:700;white-space:nowrap;}
 #statusBar{font-size:13px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #panels{flex:1;padding:8px;padding-bottom:130px;overflow-y:auto;transition:padding-bottom .2s ease;}
 #app.log-expanded #panels{padding-bottom:330px;}
@@ -30,6 +29,8 @@ input[type=text],input[type=email],input[type=date],select,textarea{
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(25,118,210,.15);}
 input.err,select.err{border-color:var(--error) !important;}
 .field-grid{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-start;}
+.field-row{display:flex;gap:10px;flex:1 1 100%;width:100%;}
+.field-row .field{flex:1 1 0;min-width:0;}
 .field{margin-bottom:4px;position:relative;min-width:76px;}
 .field.full{flex:1 1 100%;width:100%;}
 .field label{font-size:13px;font-weight:700;line-height:1.2;display:block;}
@@ -115,13 +116,12 @@ input.err,select.err{border-color:var(--error) !important;}
 <div id="app">
   <div id="topStrip">
     <span id="statusBar">Loading…</span>
-    <button id="langToggle">தமிழ்</button>
   </div>
 
   <div id="panels">
     <div class="panel" id="panel-asso" data-panel="asso">
       <div class="panel-header" data-toggle="asso">
-        <span><span id="assoHeaderLabel">Association</span><span class="panel-sub" id="assoSummary">Select or create</span></span>
+        <span>Association<span class="panel-sub" id="assoSummary">Select or create</span></span>
         <span>▾</span>
       </div>
       <div class="panel-body" id="assoBody"></div>
@@ -129,7 +129,7 @@ input.err,select.err{border-color:var(--error) !important;}
 
     <div class="panel" id="panel-firm" data-panel="firm">
       <div class="panel-header" data-toggle="firm">
-        <span><span id="firmHeaderLabel">Member Firms</span><span class="panel-sub" id="firmSummary">Select an association first</span></span>
+        <span>Member Firms<span class="panel-sub" id="firmSummary">Select an association first</span></span>
         <span>▾</span>
       </div>
       <div class="panel-body" id="firmBody"></div>
@@ -137,7 +137,7 @@ input.err,select.err{border-color:var(--error) !important;}
 
     <div class="panel" id="panel-rep" data-panel="rep">
       <div class="panel-header" data-toggle="rep">
-        <span><span id="repHeaderLabel">Representatives</span><span class="panel-sub" id="repSummary">Select a firm first</span></span>
+        <span>Representatives<span class="panel-sub" id="repSummary">Select a firm first</span></span>
         <span>▾</span>
       </div>
       <div class="panel-body" id="repBody"></div>
@@ -205,37 +205,45 @@ async function initFirebase(){
 }
 
 /* ---------------- Local storage keys ---------------- */
-const LS_ASSO='ta_associations', LS_FIRM='ta_firms', LS_REP='ta_representatives', LS_LEARN='ta_learning', LS_THEME='ta_theme', LS_LANG='ta_lang';
+const LS_ASSO='ta_associations', LS_FIRM='ta_firms', LS_REP='ta_representatives', LS_LEARN='ta_learning', LS_THEME='ta_theme';
 
-/* ---------------- Tamil / English toggle ---------------- */
-let lang = lsGet(LS_LANG, 'en');
-const TA = {
-  'Association':'சங்கம்', 'Member Firms':'உறுப்பினர் நிறுவனங்கள்', 'Representatives':'பிரதிநிதிகள்', 'Representative':'பிரதிநிதி',
-  'Select or create':'தேர்ந்தெடுக்கவும் அல்லது புதிதாக உருவாக்கவும்',
-  'Select an association first':'முதலில் ஒரு சங்கத்தைத் தேர்ந்தெடுக்கவும்',
-  'Select a firm first':'முதலில் ஒரு நிறுவனத்தைத் தேர்ந்தெடுக்கவும்',
-  'Search associations…':'சங்கங்களைத் தேடுங்கள்…', 'Search firms…':'நிறுவனங்களைத் தேடுங்கள்…', 'Search representatives…':'பிரதிநிதிகளைத் தேடுங்கள்…',
-  'No associations yet. Tap New to add one.':'இன்னும் சங்கங்கள் இல்லை. புதிதாக சேர்க்க "புதியது" ஐ தட்டவும்.',
-  'Select an Association above to see its firms.':'அதன் நிறுவனங்களைப் பார்க்க மேலே ஒரு சங்கத்தைத் தேர்ந்தெடுக்கவும்.',
-  'No firms under this association yet.':'இந்த சங்கத்தின் கீழ் இன்னும் நிறுவனங்கள் இல்லை.',
-  'Select a Member Firm above to see its representatives.':'அதன் பிரதிநிதிகளைப் பார்க்க மேலே ஒரு நிறுவனத்தைத் தேர்ந்தெடுக்கவும்.',
-  'No representatives for this firm yet.':'இந்த நிறுவனத்திற்கு இன்னும் பிரதிநிதிகள் இல்லை.',
-  'Association Name':'சங்கத்தின் பெயர்', 'Geographical Scope':'புவியியல் எல்லை',
-  'Registration No.':'பதிவு எண்.', 'Parent Association':'மூல சங்கம்', 'Phone':'தொலைபேசி', 'Email':'மின்னஞ்சல்',
-  'Geo Type':'புவியியல் வகை', 'Geo Scope':'புவியியல் எல்லை',
-  'Firm Name':'நிறுவனத்தின் பெயர்', 'Parent Firm':'மூல நிறுவனம்', 'Business Category':'வணிக வகை', 'Name (Tamil)':'பெயர் (தமிழில்)',
-  'GST No.':'ஜிஎஸ்டி எண்.', 'PAN No.':'பான் எண்.', 'Notes':'குறிப்புகள்', 'Door No.':'கதவு எண்.', 'Street Name':'தெரு பெயர்',
-  'Area':'பகுதி', 'Town':'நகரம்', 'District':'மாவட்டம்', 'Province':'மாநிலம்', 'Pincode':'அஞ்சல் குறியீடு',
-  'Representative Name':'பிரதிநிதியின் பெயர்', 'Parent Representative':'மூல பிரதிநிதி', 'Relation':'உறவு',
-  'Phone 1':'தொலைபேசி 1', 'Phone 2':'தொலைபேசி 2', 'Aadhaar No.':'ஆதார் எண்.', 'Date of Birth':'பிறந்த தேதி', 'Anniversary':'திருமண நாள்',
-  'area':'பகுதி', 'town/city':'நகரம்', 'district':'மாவட்டம்', 'province':'மாநிலம்',
-  'Assoc':'சங்கம்', 'Firm':'நிறுவனம்', 'Rep':'பிரதிநிதி',
-  'Delete':'நீக்கு', 'New':'புதியது', 'Discard':'நிராகரி', 'Edit':'திருத்து', 'Save':'சேமி',
-  'Navigate to…':'எங்கு செல்ல வேண்டும்…', 'Delete this record?':'இந்த பதிவை நீக்கவா?',
-  'Yes, delete':'ஆம், நீக்கு', 'Cancel':'ரத்துசெய்', 'Close':'மூடு',
-  '— None —':'— ஏதுமில்லை —', 'Tap to choose':'தேர்ந்தெடுக்க தட்டவும்', 'Pick a Geo Type first':'முதலில் புவியியல் வகையைத் தேர்ந்தெடுக்கவும்',
-};
-function tr(key){ return lang==='ta' ? (TA[key] || key) : key; }
+
+/* ---------------- English -> Tamil word suggestions via Google's own Input Tools API ---------------- */
+// This is the same phonetic transliteration engine/service Gboard and inputtools.google.com use —
+// so suggestions match what you'd see typing Tamil on a Google keyboard, not a hand-rolled guess.
+function cartesianProduct(arrays){
+  return arrays.reduce((acc, curr) => {
+    const next = [];
+    acc.forEach(a => curr.forEach(c => next.push([...a, c])));
+    return next;
+  }, [[]]);
+}
+async function fetchTamilSuggestion(word){
+  try{
+    const url = `https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ta-t-i0-und&num=6&cp=0&cs=1&ie=utf-8&oe=utf-8`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!Array.isArray(data) || data[0] !== 'SUCCESS' || !Array.isArray(data[1]) || !data[1].length) return null;
+
+    const segments = data[1]; // one [inputSegment, [suggestions...]] pair per space-separated word
+    // Capture every suggested option for every word (capped per word so combinations stay manageable).
+    const perWordOptions = segments.map(seg => {
+      const opts = (seg[1] && seg[1].length) ? seg[1] : [seg[0]];
+      return opts.slice(0, 4);
+    });
+    const best_fit_tamil = perWordOptions.map(opts => opts[0]).join(' ');
+
+    // All permutations/combinations across the words' option lists.
+    const combos = cartesianProduct(perWordOptions).map(parts => parts.join(' '));
+    const alternatives = [...new Set(combos)].filter(a => a && a !== best_fit_tamil).slice(0, 30);
+
+    return { best_fit_tamil, alternatives };
+  }catch(e){
+    console.warn('Google Input Tools lookup failed', e);
+    return null;
+  }
+}
+const TA_NAME_COMPANION_FIELDS = new Set(['assoNameTa','firmNameTa','repNameTa']);
 
 function lsGet(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch(e){ return fallback; } }
 function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
@@ -366,6 +374,7 @@ const TITLE_CASE_FIELDS = new Set([
   'assoName','assoGeoScope','firmName','firmArea','firmTown','firmDistrict','firmProvince','firmStreet',
   'repName','repArea','repTown','repDistrict','repProvince','repStreet'
 ]);
+const NAME_FIELDS_FOR_TRANSLITERATION = new Set(['assoName','firmName','repName']);
 
 function durationSince(dateStr){
   if(!dateStr) return null;
@@ -406,20 +415,6 @@ function startThemeCycle(){
   setInterval(()=>{
     applyTheme(Math.floor(Math.random()*THEMES.length));
   }, 10*60*1000); // auto random cycle every 10 minutes
-}
-
-/* ---------------- Keep bottom bar permanently attached, even when the keyboard opens ---------------- */
-if(window.visualViewport){
-  const vv = window.visualViewport;
-  function pinBottomBar(){
-    const bar = document.getElementById('bottomBar');
-    if(!bar) return;
-    const offset = window.innerHeight - vv.height - vv.offsetTop;
-    bar.style.bottom = Math.max(0, offset) + 'px';
-  }
-  vv.addEventListener('resize', pinBottomBar);
-  vv.addEventListener('scroll', pinBottomBar);
-  pinBottomBar();
 }
 
 /* ---------------- Keep focused field visible above fixed bottom bars ---------------- */
@@ -472,26 +467,6 @@ logLine.addEventListener('focus', ()=> setLogExpanded(true));
 logLine.addEventListener('blur', ()=> setLogExpanded(false));
 logLine.addEventListener('click', ()=> logLine.focus());
 
-/* ---------------- Tamil / English toggle ---------------- */
-function applyLanguageUI(){
-  document.getElementById('langToggle').textContent = lang==='en' ? 'தமிழ்' : 'English';
-  document.getElementById('assoHeaderLabel').textContent = tr('Association');
-  document.getElementById('firmHeaderLabel').textContent = tr('Member Firms');
-  document.getElementById('repHeaderLabel').textContent = tr('Representatives');
-}
-document.getElementById('langToggle').addEventListener('click', ()=>{
-  lang = (lang==='en') ? 'ta' : 'en';
-  lsSet(LS_LANG, lang);
-  applyLanguageUI();
-  // Force search boxes/lists/forms to rebuild so their static text picks up the new language.
-  document.getElementById('assoBody').innerHTML = '';
-  document.getElementById('firmBody').innerHTML = '';
-  document.getElementById('repBody').innerHTML = '';
-  renderAll();
-  refreshActionBar();
-});
-
-
 /* ---------------- Learning helpers ---------------- */
 function ensureFreq(obj, key){
   if(!key) return;
@@ -541,22 +516,23 @@ function geoScopeOptions(type){
 /* ---------------- Field definitions ---------------- */
 const ASSO_FIELDS = [
  {id:'assoName', label:'Association Name', type:'text', max:60, required:true},
- {id:'assoReg', label:'Registration No.', type:'text', max:30},
- {id:'assoParent', label:'Parent Association', type:'parent', coll:'asso'},
+ {id:'assoNameTa', label:'Name (Tamil)', type:'text', max:60},
+ {id:'assoReg', label:'Registration No.', type:'text', max:30, row:'r1'},
+ {id:'assoParent', label:'Parent Association', type:'parent', coll:'asso', row:'r1'},
  {id:'assoPhone', label:'Phone', type:'phone', required:true},
  {id:'assoEmail', label:'Email', type:'email'},
- {id:'assoGeoType', label:'Geo Type', type:'geotype', required:true},
- {id:'assoGeoScope', label:'Geo Scope', type:'geoscope', required:true, max:60},
+ {id:'assoGeoType', label:'Geo Type', type:'geotype', required:true, row:'r2'},
+ {id:'assoGeoScope', label:'Geo Scope', type:'geoscope', required:true, max:60, row:'r2'},
 ];
 const FIRM_FIELDS = [
  {id:'firmName', label:'Firm Name', type:'text', max:60, required:true},
  {id:'firmNameTa', label:'Name (Tamil)', type:'text', max:60},
- {id:'firmParent', label:'Parent Firm', type:'parent', coll:'firm'},
- {id:'firmCategory', label:'Business Category', type:'suggest', source:'firmCategories', max:15},
- {id:'firmGst', label:'GST No.', type:'gst', max:15},
- {id:'firmPan', label:'PAN No.', type:'pan', max:10},
- {id:'firmPhone', label:'Phone', type:'phone'},
- {id:'firmEmail', label:'Email', type:'email'},
+ {id:'firmParent', label:'Parent Firm', type:'parent', coll:'firm', row:'r1'},
+ {id:'firmCategory', label:'Business Category', type:'suggest', source:'firmCategories', max:15, row:'r1'},
+ {id:'firmGst', label:'GST No.', type:'gst', max:15, row:'r2'},
+ {id:'firmPan', label:'PAN No.', type:'pan', max:10, row:'r2'},
+ {id:'firmPhone', label:'Phone', type:'phone', row:'r3'},
+ {id:'firmEmail', label:'Email', type:'email', row:'r3'},
  {id:'firmNotes', label:'Notes', type:'textarea', max:300},
  {id:'firmDoor', label:'Door No.', type:'text', max:7},
  {id:'firmStreet', label:'Street Name', type:'suggest', source:'streetSuggestions', max:60},
@@ -569,14 +545,14 @@ const FIRM_FIELDS = [
 const REP_FIELDS = [
  {id:'repName', label:'Representative Name', type:'text', max:60, required:true},
  {id:'repNameTa', label:'Name (Tamil)', type:'text', max:60},
- {id:'repParent', label:'Parent Representative', type:'parent', coll:'rep'},
- {id:'repRelation', label:'Relation', type:'suggest', source:'repRelations', max:15},
- {id:'repPhone1', label:'Phone 1', type:'phone', required:true},
- {id:'repPhone2', label:'Phone 2', type:'phone'},
- {id:'repEmail', label:'Email', type:'email'},
- {id:'repAadhar', label:'Aadhaar No.', type:'aadhar', max:12},
- {id:'repDob', label:'Date of Birth', type:'dob', max:60},
- {id:'repAnniv', label:'Anniversary', type:'anniv', max:60},
+ {id:'repParent', label:'Parent Representative', type:'parent', coll:'rep', row:'r1'},
+ {id:'repRelation', label:'Relation', type:'suggest', source:'repRelations', max:15, row:'r1'},
+ {id:'repPhone1', label:'Phone 1', type:'phone', required:true, row:'r2'},
+ {id:'repPhone2', label:'Phone 2', type:'phone', row:'r2'},
+ {id:'repEmail', label:'Email', type:'email', row:'r3'},
+ {id:'repAadhar', label:'Aadhaar No.', type:'aadhar', max:12, row:'r3'},
+ {id:'repDob', label:'Date of Birth', type:'dob', max:60, row:'r4'},
+ {id:'repAnniv', label:'Anniversary', type:'anniv', max:60, row:'r4'},
  {id:'repDoor', label:'Door No.', type:'text', max:7},
  {id:'repStreet', label:'Street Name', type:'suggest', source:'streetSuggestions', max:60},
  {id:'repArea', label:'Area', type:'area', max:60},
@@ -642,6 +618,7 @@ function parentOptions(kind, selfId){
 const FULL_WIDTH_TYPES = ['textarea'];
 const CH_BY_TYPE = { phone:12, email:22, pin:8, gst:17, pan:12, aadhar:14, dob:13, anniv:13, geotype:14, parent:20 };
 function fieldWidthStyle(f){
+  if(f.row) return 'flex:1 1 0;min-width:0;width:auto;';
   const max = f.max || (f.type==='geoscope' ? 60 : 0);
   if(FULL_WIDTH_TYPES.includes(f.type) || max>=50) return 'flex:1 1 100%;width:100%;';
   const ch = CH_BY_TYPE[f.type] || Math.max(9, Math.min((max||18)+2, 26));
@@ -660,7 +637,7 @@ function fieldGroup(f){
 }
 function fieldWrap(f, innerHtml){
   return `<div class="field" data-grp="${fieldGroup(f)}" style="${fieldWidthStyle(f)}" data-field="${f.id}">
-    <label>${tr(f.label)}${f.required?' *':''}</label>
+    <label>${f.label}${f.required?' *':''}</label>
     ${innerHtml}
     <span class="errmsg" id="err_${f.id}"></span>
   </div>`;
@@ -670,10 +647,10 @@ function renderChoiceInput(f, opts, val, dis){
   const labelText = current ? current.label : '';
   if(opts.length < 9){
     return `<input type="hidden" id="fld_${f.id}" value="${val||''}">
-      <input type="text" id="disp_${f.id}" class="choicebox" readonly value="${labelText}" placeholder="${tr('Tap to choose')}" ${dis}>`;
+      <input type="text" id="disp_${f.id}" class="choicebox" readonly value="${labelText}" placeholder="Tap to choose" ${dis}>`;
   }
   const optHtml = opts.map(o=>`<option value="${o.value}" ${o.value===val?'selected':''}>${o.label}</option>`).join('');
-  return `<select id="fld_${f.id}" ${dis}><option value="">${tr('— None —')}</option>${optHtml}</select>`;
+  return `<select id="fld_${f.id}" ${dis}><option value="">— None —</option>${optHtml}</select>`;
 }
 
 function renderField(kind, f, data, editable){
@@ -687,14 +664,14 @@ function renderField(kind, f, data, editable){
     return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
   }
   if(f.type==='geotype'){
-    const opts = GEO_TYPES.map(t=>({value:t, label:tr(t)}));
+    const opts = GEO_TYPES.map(t=>({value:t, label:t}));
     return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
   }
   if(f.type==='geoscope'){
     const type = data.assoGeoType || '';
     const list = geoScopeOptions(type);
     const dl = list.map(v=>`<option value="${v}">`).join('');
-    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="60" value="${val}" ${dis} ${type?'':`placeholder="${tr('Pick a Geo Type first')}"`}>
+    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="60" value="${val}" ${dis} ${type?'':`placeholder="Pick a Geo Type first"`}>
       <datalist id="dl_${f.id}">${dl}</datalist>`);
   }
   if(f.type==='suggest'){
@@ -732,13 +709,30 @@ function renderField(kind, f, data, editable){
   }
   // text / phone / email / pin default
   const inputType = f.type==='email' ? 'email' : 'text';
-  const ph = f.type==='phone' ? 'e.g. 9876543210' : f.type==='email' ? 'e.g. name@example.com' : f.type==='pin' ? 'e.g. 632006' : '';
+  const ph = f.type==='phone' ? 'e.g. 9876543210' : f.type==='email' ? 'e.g. name@example.com' : f.type==='pin' ? 'e.g. 632006' : (TA_NAME_COMPANION_FIELDS.has(f.id) ? 'Fills in automatically — pick an alternative or type your own' : '');
   const numeric = f.type==='phone' ? 'inputmode="tel" pattern="[0-9]*"' : f.type==='pin' ? 'inputmode="numeric" pattern="[0-9]*"' : '';
+  if(TA_NAME_COMPANION_FIELDS.has(f.id)){
+    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="${f.max||100}" value="${val}" ${dis} placeholder="${ph}">
+      <datalist id="dl_${f.id}"></datalist>`);
+  }
   return fieldWrap(f, `<input id="fld_${f.id}" type="${inputType}" maxlength="${f.max||100}" value="${val}" ${dis} ${numeric} ${ph?`placeholder="${ph}"`:''}>`);
 }
 
 function renderForm(kind, fields, data, editable){
-  return `<div class="field-grid">${fields.map(f=>renderField(kind, f, data, editable)).join('')}</div>`;
+  let html = '';
+  let i = 0;
+  while(i < fields.length){
+    const f = fields[i];
+    const next = fields[i+1];
+    if(f.row && next && next.row === f.row){
+      html += `<div class="field-row">${renderField(kind,f,data,editable)}${renderField(kind,next,data,editable)}</div>`;
+      i += 2;
+    } else {
+      html += renderField(kind, f, data, editable);
+      i += 1;
+    }
+  }
+  return `<div class="field-grid">${html}</div>`;
 }
 
 /* ---------------- Address autofill + custom suggestion dropdowns ---------------- */
@@ -851,16 +845,51 @@ function wireValidation(kind, fields, data){
     el.addEventListener('input', update);
     el.addEventListener('blur', ()=>{
       if(TITLE_CASE_FIELDS.has(f.id) && el.value){ el.value = toTitleCase(el.value); }
+      if(NAME_FIELDS_FOR_TRANSLITERATION.has(f.id) && el.value.trim()){
+        const word = el.value.trim();
+        const taEl = document.getElementById('fld_'+f.id+'Ta');
+        const dl = document.getElementById('dl_'+f.id+'Ta');
+        // Only re-fetch if the English name actually changed since the last lookup —
+        // but whenever it did change, keep the Tamil field in sync with it.
+        if(taEl && word !== el.dataset.lastTaSource){
+          el.dataset.lastTaSource = word;
+          logEvent(`Looking up the Tamil word for "${word}"…`, {transient:true});
+          fetchTamilSuggestion(word).then(result=>{
+            if(!result){ logEvent(`Couldn't fetch a Tamil word for "${word}" — enter it manually.`, {transient:true}); return; }
+            taEl.value = result.best_fit_tamil;
+            if(dl){
+              const opts = [result.best_fit_tamil, ...result.alternatives].filter(Boolean);
+              dl.innerHTML = opts.map(o=>`<option value="${o}">`).join('');
+            }
+            logEvent(`Tamil suggestion ready for "${word}": ${result.best_fit_tamil}`, {transient:true});
+          });
+        }
+      }
       update();
     });
+
+    // Tamil companion fields: live "as you type" suggestions, same as an online input tool
+    if(TA_NAME_COMPANION_FIELDS.has(f.id)){
+      const dl = document.getElementById('dl_'+f.id);
+      const liveSuggest = debounce(()=>{
+        const typed = el.value.trim();
+        if(!typed || !dl) return;
+        fetchTamilSuggestion(typed).then(result=>{
+          if(!result || !dl) return;
+          const opts = [result.best_fit_tamil, ...result.alternatives].filter(Boolean);
+          dl.innerHTML = opts.map(o=>`<option value="${o}">`).join('');
+        });
+      }, 350);
+      el.addEventListener('input', liveSuggest);
+    }
 
     // Parent / GeoType: tap opens a picker popup straight away when there are few fixed options
     if(dispEl){
       let opts = [];
       if(f.type==='parent') opts = parentOptions(f.coll, data.id).map(o=>({value:o.id, label:o.assoName||o.firmName||o.repName}));
-      if(f.type==='geotype') opts = GEO_TYPES.map(t=>({value:t, label:tr(t)}));
+      if(f.type==='geotype') opts = GEO_TYPES.map(t=>({value:t, label:t}));
       const openPicker = ()=>{
-        showPopup(tr(f.label), opts.map(o=>({label:o.label, value:o.value})), el.value, (v)=>{
+        showPopup(f.label, opts.map(o=>({label:o.label, value:o.value})), el.value, (v)=>{
           el.value = v;
           const chosen = opts.find(o=>o.value===v);
           dispEl.value = chosen ? chosen.label : '';
@@ -945,11 +974,11 @@ function debounce(fn, ms){
 function renderAssoPanel(){
   const body = document.getElementById('assoBody');
   const summary = document.getElementById('assoSummary');
-  summary.textContent = state.selAsso ? nameOf('asso', state.selAsso) : tr('Select or create');
+  summary.textContent = state.selAsso ? nameOf('asso', state.selAsso) : 'Select or create';
 
   if(state.mode.asso==='browse'){
     if(!document.getElementById('assoSearch')){
-      body.innerHTML = `<input class="searchbox" id="assoSearch" placeholder="${tr('Search associations…')}" value="${state.search.asso}">
+      body.innerHTML = `<input class="searchbox" id="assoSearch" placeholder="Search associations…" value="${state.search.asso}">
         <div id="assoList"></div>`;
     }
     renderAssoList();
@@ -965,11 +994,11 @@ function renderAssoList(){
   const q = state.search.asso.toLowerCase();
   const rows = ASSOS.filter(a=> !q || (a.assoName||'').toLowerCase().includes(q));
   if(!rows.length){
-    list.innerHTML = `<div class="empty-note">${tr('No associations yet. Tap New to add one.')}</div>`;
+    list.innerHTML = `<div class="empty-note">No associations yet. Tap New to add one.</div>`;
     return;
   }
   list.innerHTML = `<table class="data-table">
-    <thead><tr><th>${tr('Association Name')}</th><th>${tr('Geographical Scope')}</th></tr></thead>
+    <thead><tr><th>Association Name</th><th>Geographical Scope</th></tr></thead>
     <tbody>
       ${rows.map(a=>`<tr class="list-row ${a.id===state.selAsso?'selected':''}" data-id="${a.id}">
         <td>${a.assoName||'(unnamed)'}</td>
@@ -984,14 +1013,14 @@ function renderFirmPanel(){
   const body = document.getElementById('firmBody');
   const summary = document.getElementById('firmSummary');
   if(!state.selAsso){
-    summary.textContent = tr('Select an association first');
-    body.innerHTML = `<div class="empty-note">${tr('Select an Association above to see its firms.')}</div>`;
+    summary.textContent = 'Select an association first';
+    body.innerHTML = `<div class="empty-note">Select an Association above to see its firms.</div>`;
     return;
   }
   summary.textContent = state.selFirm ? nameOf('firm', state.selFirm) : `Under: ${nameOf('asso', state.selAsso)}`;
   if(state.mode.firm==='browse'){
     if(!document.getElementById('firmSearch')){
-      body.innerHTML = `<input class="searchbox" id="firmSearch" placeholder="${tr('Search firms…')}" value="${state.search.firm}">
+      body.innerHTML = `<input class="searchbox" id="firmSearch" placeholder="Search firms…" value="${state.search.firm}">
         <div id="firmList"></div>`;
     }
     renderFirmList();
@@ -1008,7 +1037,7 @@ function renderFirmList(){
   list.innerHTML = FIRMS.filter(f=> f.assoId===state.selAsso && (!q || (f.firmName||'').toLowerCase().includes(q))).map(f=>`
     <div class="list-row ${f.id===state.selFirm?'selected':''}" data-id="${f.id}">
       <div><div class="lr-name">${f.firmName||'(unnamed)'}</div><div class="lr-sub">${f.firmTown||''} · ${f.firmCategory||''}</div></div>
-    </div>`).join('') || `<div class="empty-note">${tr('No firms under this association yet.')}</div>`;
+    </div>`).join('') || `<div class="empty-note">No firms under this association yet.</div>`;
 }
 const renderFirmListDebounced = debounce(renderFirmList, 120);
 
@@ -1016,14 +1045,14 @@ function renderRepPanel(){
   const body = document.getElementById('repBody');
   const summary = document.getElementById('repSummary');
   if(!state.selFirm){
-    summary.textContent = tr('Select a firm first');
-    body.innerHTML = `<div class="empty-note">${tr('Select a Member Firm above to see its representatives.')}</div>`;
+    summary.textContent = 'Select a firm first';
+    body.innerHTML = `<div class="empty-note">Select a Member Firm above to see its representatives.</div>`;
     return;
   }
   summary.textContent = state.selRep ? nameOf('rep', state.selRep) : `Under: ${nameOf('firm', state.selFirm)}`;
   if(state.mode.rep==='browse'){
     if(!document.getElementById('repSearch')){
-      body.innerHTML = `<input class="searchbox" id="repSearch" placeholder="${tr('Search representatives…')}" value="${state.search.rep}">
+      body.innerHTML = `<input class="searchbox" id="repSearch" placeholder="Search representatives…" value="${state.search.rep}">
         <div id="repList"></div>`;
     }
     renderRepList();
@@ -1040,7 +1069,7 @@ function renderRepList(){
   list.innerHTML = REPS.filter(r=> r.firmId===state.selFirm && (!q || (r.repName||'').toLowerCase().includes(q))).map(r=>`
     <div class="list-row ${r.id===state.selRep?'selected':''}" data-id="${r.id}">
       <div><div class="lr-name">${r.repName||'(unnamed)'}</div><div class="lr-sub">${r.repRelation||''} · ${r.repPhone1||''}</div></div>
-    </div>`).join('') || `<div class="empty-note">${tr('No representatives for this firm yet.')}</div>`;
+    </div>`).join('') || `<div class="empty-note">No representatives for this firm yet.</div>`;
 }
 const renderRepListDebounced = debounce(renderRepList, 120);
 
@@ -1117,7 +1146,7 @@ function refreshActionBar(){
   const kind = state.active;
   const mode = state.mode[kind];
   const hasSel = kind==='asso'?state.selAsso : kind==='firm'?state.selFirm : state.selRep;
-  const spaceName = tr(kind==='asso'?'Assoc':kind==='firm'?'Firm':'Rep');
+  const spaceName = kind==='asso'?'Assoc':kind==='firm'?'Firm':'Rep';
 
   const ab1label = document.getElementById('ab1label');
   const ab2 = document.getElementById('ab2'); // Delete
@@ -1128,36 +1157,36 @@ function refreshActionBar(){
   const ab4label = document.getElementById('ab4label');
 
   ab1label.textContent = spaceName;
-  ab2label.textContent = `${tr('Delete')} ${spaceName}`;
+  ab2label.textContent = `Delete ${spaceName}`;
 
   ab2.disabled = !hasSel || mode!=='browse';
 
   if(mode==='browse'){
     ab3.disabled = (kind==='firm' && !state.selAsso) || (kind==='rep' && !state.selFirm);
-    ab3label.textContent = `${tr('New')} ${spaceName}`;
+    ab3label.textContent = `New ${spaceName}`;
     document.querySelector('#ab3 .abicon').textContent = '➕';
   } else {
     ab3.disabled = false;
-    ab3label.textContent = `${tr('Discard')} ${spaceName}`;
+    ab3label.textContent = `Discard ${spaceName}`;
     document.querySelector('#ab3 .abicon').textContent = '↩️';
   }
 
   if(mode==='browse'){
     ab4.disabled = !hasSel;
-    ab4label.textContent = `${tr('Edit')} ${spaceName}`;
+    ab4label.textContent = `Edit ${spaceName}`;
     document.querySelector('#ab4 .abicon').textContent = '✏️';
   } else {
     ab4.disabled = false;
-    ab4label.textContent = `${tr('Save')} ${spaceName}`;
+    ab4label.textContent = `Save ${spaceName}`;
     document.querySelector('#ab4 .abicon').textContent = '✔️';
   }
 }
 
 document.getElementById('ab1').onclick = ()=>{
-  showPopup(tr('Navigate to…'), [
-    {label:tr('Association'), value:'asso'},
-    {label:tr('Member Firms'), value:'firm'},
-    {label:tr('Representative'), value:'rep'}
+  showPopup('Navigate to…', [
+    {label:'Association', value:'asso'},
+    {label:'Member Firms', value:'firm'},
+    {label:'Representative', value:'rep'}
   ], state.active, (v)=> setActivePanel(v));
 };
 
@@ -1166,7 +1195,7 @@ document.getElementById('ab2').onclick = async ()=>{
   const id = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
   if(!id) return;
   const label = nameOf(kind, id) || 'this record';
-  showPopup(tr('Delete this record?'), [{label:tr('Yes, delete'), value:'yes'},{label:tr('Cancel'), value:'no'}], null, async (v)=>{
+  showPopup('Delete this record?', [{label:'Yes, delete', value:'yes'},{label:'Cancel', value:'no'}], null, async (v)=>{
     if(v==='yes'){
       await deleteRecord(kind, id);
       if(kind==='asso'){ state.selAsso=null; state.selFirm=null; state.selRep=null; }
@@ -1183,15 +1212,16 @@ document.getElementById('ab3').onclick = ()=>{
   const kind = state.active;
   const mode = state.mode[kind];
   if(mode==='browse'){
-    if(kind==='firm' && !state.selAsso){ alert(tr('Select an association first')+'.'); return; }
-    if(kind==='rep' && !state.selFirm){ alert(tr('Select a firm first')+'.'); return; }
+    if(kind==='firm' && !state.selAsso){ alert('Select an association first.'); return; }
+    if(kind==='rep' && !state.selFirm){ alert('Select a firm first.'); return; }
     state.prevSel[kind] = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
     state.mode[kind] = 'new';
     if(kind==='asso') state.selAsso=null;
     if(kind==='firm') state.selFirm=null;
     if(kind==='rep') state.selRep=null;
     renderAll(); refreshActionBar();
-    const kindLabel = kind==='asso'?tr('Association'):kind==='firm'?tr('Member Firms'):tr('Representative');
+    applyTheme(Math.floor(Math.random()*THEMES.length));
+    const kindLabel = kind==='asso'?'Association':kind==='firm'?'Member Firms':'Representative';
     logEvent(`Starting a new ${kindLabel} entry.`);
   } else {
     // Discard changes / cancel new entry
@@ -1268,7 +1298,7 @@ function showPopup(title, options, currentVal, onPick){
   const opts = options.map(o=>`<div class="popup-opt ${o.value===currentVal?'current':''}" data-v="${o.value}">${o.label}</div>`).join('');
   root.innerHTML = `<div class="popup-overlay"><div class="popup-sheet">
     <h3>${title}</h3><div id="popupOptsList">${opts}</div>
-    <button class="popup-close">${tr('Close')}</button>
+    <button class="popup-close">Close</button>
   </div></div>`;
   root.querySelectorAll('.popup-opt').forEach(el=> el.addEventListener('click', ()=>{
     onPick(el.dataset.v); root.innerHTML='';
@@ -1282,9 +1312,7 @@ async function init(){
   // 1) Show whatever is cached locally right away — no waiting on the network.
   loadLocalOnly();
   setupListDelegation();
-  applyLanguageUI();
-  const savedTheme = lsGet(LS_THEME, null);
-  applyTheme(savedTheme!==null ? savedTheme : Math.floor(Math.random()*THEMES.length));
+  applyTheme(Math.floor(Math.random()*THEMES.length)); // fresh random theme every load — not the last saved one
   setActivePanel('asso');
   statusBar.textContent = 'Showing local data — connecting…';
   logEvent(`Loaded ${ASSOS.length} association(s), ${FIRMS.length} firm(s), ${REPS.length} representative(s) from local cache.`);
