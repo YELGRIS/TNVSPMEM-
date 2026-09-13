@@ -13,10 +13,7 @@
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;background:var(--bg);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);font-size:14px;}
 #app{display:flex;flex-direction:column;min-height:100vh;}
-#topStrip{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--panel);border-bottom:3px solid var(--accent);position:sticky;top:0;z-index:20;gap:8px;}
-#statusBar{font-size:13px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#panels{flex:1;padding:8px;padding-bottom:130px;overflow-y:auto;transition:padding-bottom .2s ease;}
-#app.log-expanded #panels{padding-bottom:330px;}
+#panels{flex:1;padding:8px 8px 4px;}
 .panel{background:var(--panel);border-radius:14px;margin-bottom:8px;overflow:hidden;transition:max-height .25s ease;box-shadow:0 2px 6px rgba(0,0,0,.10);border:1px solid #e3eaf0;}
 .panel-header{padding:13px 14px;font-size:17px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer;color:var(--accent);}
 .panel-sub{font-size:13px;font-weight:400;color:var(--muted);display:block;margin-top:2px;}
@@ -29,8 +26,6 @@ input[type=text],input[type=email],input[type=date],select,textarea{
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(25,118,210,.15);}
 input.err,select.err{border-color:var(--error) !important;}
 .field-grid{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:flex-start;}
-.field-row{display:flex;gap:10px;flex:1 1 100%;width:100%;}
-.field-row .field{flex:1 1 0;min-width:0;}
 .field{margin-bottom:4px;position:relative;min-width:76px;}
 .field.full{flex:1 1 100%;width:100%;}
 .field label{font-size:13px;font-weight:700;line-height:1.2;display:block;}
@@ -75,37 +70,41 @@ input.err,select.err{border-color:var(--error) !important;}
 .field[data-grp="g6"] label{color:var(--g6);}
 .field[data-grp="g6"] input,.field[data-grp="g6"] select,.field[data-grp="g6"] textarea,.field[data-grp="g6"] .choicebox{border-color:var(--g6);color:var(--g6);}
 
-#bottomBar{position:fixed;left:0;bottom:0;width:100%;z-index:40;display:flex;flex-direction:column;box-shadow:0 -2px 10px rgba(0,0,0,.12);padding-bottom:env(safe-area-inset-bottom);}
-#actionbar{display:flex;background:var(--panel);border-top:3px solid var(--accent);}
-#actionbar button{flex:1;border:none;background:none;padding:12px 2px 10px;font-weight:700;font-size:14px;color:var(--accent);position:relative;overflow:hidden;}
-#actionbar button .abicon{display:block;font-size:23px;}
-#actionbar button:disabled{color:#b0bec5;}
 .suggest-box{position:absolute;left:0;right:0;top:100%;background:var(--panel);border:2px solid var(--accent);border-radius:10px;max-height:190px;overflow-y:auto;z-index:50;box-shadow:0 3px 10px rgba(0,0,0,.18);}
+.choice-box{position:absolute;left:0;right:0;top:100%;background:var(--panel);border:2px solid var(--accent);border-radius:10px;max-height:220px;overflow-y:auto;z-index:55;box-shadow:0 3px 10px rgba(0,0,0,.18);}
+.choice-row{padding:11px 12px;font-size:15px;cursor:pointer;border-bottom:1px solid #eceff1;line-height:1.3;}
+.choice-row:last-child{border-bottom:none;}
+.choice-row:active{background:#eef3fb;}
+.choice-row.current{color:var(--accent);font-weight:700;}
+.photo-cluster{display:flex;gap:10px;align-items:stretch;margin-bottom:2px;}
+.photo-cluster-fields{flex:1;min-width:0;display:flex;flex-direction:column;gap:0;}
+.photo-cluster-fields .field{width:100% !important;flex:1 1 100% !important;margin-bottom:2px;}
+.photo-cluster-photo{flex:0 0 auto;}
 .suggest-row{padding:8px 10px;font-size:14px;cursor:pointer;border-bottom:1px solid #eceff1;line-height:1.35;}
 .suggest-row:last-child{border-bottom:none;}
 .suggest-row:active{background:#eef3fb;}
 .suggest-row b{color:var(--accent);}
 .suggest-row small{color:var(--muted);display:block;font-size:12px;}
-#eventLog{background:var(--panel);border-top:2px solid #e3eaf0;}
+.photo-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.photo-preview{width:90px;height:120px;object-fit:cover;border-radius:6px;border:2px solid var(--accent);}
+.photo-wrap input[type="file"]{width:90px;font-size:10px;}
+.photo-remove{font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid var(--g4);color:var(--g4);background:none;}
+#eventLog{position:relative;background:var(--panel);border-top:2px solid #e3eaf0;}
 .log-history{max-height:220px;overflow-y:auto;padding:6px 12px;border-bottom:1px solid #eceff1;}
 .log-history .log-item{font-size:13px;padding:4px 0;border-bottom:1px dashed #eceff1;color:var(--text);}
-.log-line{padding:7px 12px;font-size:13px;color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.log-line{padding:7px 8px 7px 12px;font-size:13px;color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
 .log-preview{flex:1;min-width:0;}
 .log-preview-item{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;color:var(--muted);line-height:1.35;}
 .log-line .logtoggle{color:var(--accent);font-weight:700;}
 .hint{color:var(--muted);font-size:12px;min-height:14px;display:block;line-height:1.35;}
-.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:flex-end;}
-.popup-sheet{background:var(--panel);width:100%;border-radius:20px 20px 0 0;padding:16px;max-height:75vh;overflow-y:auto;border-top:6px solid var(--accent);}
-.popup-sheet h3{margin:2px 0 12px;font-size:18px;color:var(--accent);}
-.popup-opt{padding:14px 12px;border-bottom:1px solid #eceff1;font-size:17px;cursor:pointer;border-left:5px solid transparent;border-radius:8px;margin-bottom:2px;}
-#popupOptsList .popup-opt:nth-child(6n+1){border-left-color:var(--g1);background:color-mix(in srgb, var(--g1) 7%, transparent);}
-#popupOptsList .popup-opt:nth-child(6n+2){border-left-color:var(--g2);background:color-mix(in srgb, var(--g2) 7%, transparent);}
-#popupOptsList .popup-opt:nth-child(6n+3){border-left-color:var(--g3);background:color-mix(in srgb, var(--g3) 7%, transparent);}
-#popupOptsList .popup-opt:nth-child(6n+4){border-left-color:var(--g4);background:color-mix(in srgb, var(--g4) 7%, transparent);}
-#popupOptsList .popup-opt:nth-child(6n+5){border-left-color:var(--g5);background:color-mix(in srgb, var(--g5) 7%, transparent);}
-#popupOptsList .popup-opt:nth-child(6n+0){border-left-color:var(--g6);background:color-mix(in srgb, var(--g6) 7%, transparent);}
-.popup-opt.current{color:var(--accent);font-weight:700;}
-.popup-close{margin-top:12px;width:100%;padding:14px;border-radius:12px;border:none;background:#eceff1;font-weight:700;font-size:15px;}
+#menuBtn{flex:0 0 auto;background:var(--accent);border:none;border-radius:9px;padding:7px 14px;color:#fff;font-weight:700;font-size:13px;white-space:nowrap;}
+#menuPanel{position:absolute;right:8px;bottom:100%;margin-bottom:6px;background:var(--panel);border:2px solid var(--accent);border-radius:12px;min-width:190px;max-width:82vw;overflow:hidden;z-index:60;box-shadow:0 -3px 12px rgba(0,0,0,.18);}
+.menu-item{padding:13px 14px;font-size:15px;cursor:pointer;border-bottom:1px solid #eceff1;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.menu-item:last-child{border-bottom:none;}
+.menu-item:active{background:#eef3fb;}
+.menu-item .mi-arrow{color:var(--muted);font-size:13px;}
+.menu-item.disabled{color:#b0bec5;pointer-events:none;}
+.menu-item.danger{color:var(--error);}
 .age-label{font-size:13px;color:var(--accent);font-weight:700;}
 .badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700;background:#fff3cd;color:#856404;}
 .choicebox{cursor:pointer;background:var(--input-bg);caret-color:transparent;}
@@ -114,14 +113,10 @@ input.err,select.err{border-color:var(--error) !important;}
 </head>
 <body>
 <div id="app">
-  <div id="topStrip">
-    <span id="statusBar">Loading…</span>
-  </div>
-
   <div id="panels">
     <div class="panel" id="panel-asso" data-panel="asso">
       <div class="panel-header" data-toggle="asso">
-        <span>Association<span class="panel-sub" id="assoSummary">Select or create</span></span>
+        <span><span id="assoHeaderLabel">Association</span><span class="panel-sub" id="assoSummary">Select or create</span></span>
         <span>▾</span>
       </div>
       <div class="panel-body" id="assoBody"></div>
@@ -129,7 +124,7 @@ input.err,select.err{border-color:var(--error) !important;}
 
     <div class="panel" id="panel-firm" data-panel="firm">
       <div class="panel-header" data-toggle="firm">
-        <span>Member Firms<span class="panel-sub" id="firmSummary">Select an association first</span></span>
+        <span><span id="firmHeaderLabel">Member Firms</span><span class="panel-sub" id="firmSummary">Select an association first</span></span>
         <span>▾</span>
       </div>
       <div class="panel-body" id="firmBody"></div>
@@ -137,7 +132,7 @@ input.err,select.err{border-color:var(--error) !important;}
 
     <div class="panel" id="panel-rep" data-panel="rep">
       <div class="panel-header" data-toggle="rep">
-        <span>Representatives<span class="panel-sub" id="repSummary">Select a firm first</span></span>
+        <span><span id="repHeaderLabel">Representatives</span><span class="panel-sub" id="repSummary">Select a firm first</span></span>
         <span>▾</span>
       </div>
       <div class="panel-body" id="repBody"></div>
@@ -145,27 +140,18 @@ input.err,select.err{border-color:var(--error) !important;}
 
   </div>
 
-  <div id="bottomBar">
-    <div id="actionbar">
-      <button id="ab1"><span class="abicon">☰</span><span id="ab1label">Navigate</span></button>
-      <button id="ab2"><span class="abicon">🗑️</span><span id="ab2label">Delete</span></button>
-      <button id="ab3"><span class="abicon">➕</span><span id="ab3label">New</span></button>
-      <button id="ab4"><span class="abicon">✏️</span><span id="ab4label">Edit</span></button>
-    </div>
-
-    <div id="eventLog">
-      <div class="log-history" id="eventLogHistory" style="display:none"></div>
-      <div class="log-line" id="logLineClickable">
-        <div id="eventLogPreview" class="log-preview">
-          <div class="log-preview-item">Ready.</div>
-        </div>
-        <span class="logtoggle" id="logToggleIcon">▴</span>
+  <div id="eventLog">
+    <div class="log-history" id="eventLogHistory" style="display:none"></div>
+    <div id="menuPanel" style="display:none"></div>
+    <div class="log-line" id="logLineClickable">
+      <div id="eventLogPreview" class="log-preview">
+        <div class="log-preview-item">Ready.</div>
       </div>
+      <span class="logtoggle" id="logToggleIcon">▴</span>
+      <button id="menuBtn" type="button">Menu</button>
     </div>
   </div>
 </div>
-
-<div id="popupRoot"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
@@ -185,7 +171,7 @@ const firebaseConfig = {
 };
 
 let db = null, localMode = false;
-const statusBar = document.getElementById('statusBar');
+const statusBar = { textContent: '' }; // no dedicated status bar UI anymore — surfaced via the log
 
 async function initFirebase(){
   try{
@@ -205,54 +191,58 @@ async function initFirebase(){
 }
 
 /* ---------------- Local storage keys ---------------- */
-const LS_ASSO='ta_associations', LS_FIRM='ta_firms', LS_REP='ta_representatives', LS_LEARN='ta_learning', LS_THEME='ta_theme';
+const LS_ASSO='ta_associations', LS_FIRM='ta_firms', LS_REP='ta_representatives', LS_LEARN='ta_learning', LS_THEME='ta_theme', LS_LANG='ta_lang';
 
-
-/* ---------------- English -> Tamil word suggestions via Google's own Input Tools API ---------------- */
-// This is the same phonetic transliteration engine/service Gboard and inputtools.google.com use —
-// so suggestions match what you'd see typing Tamil on a Google keyboard, not a hand-rolled guess.
-function cartesianProduct(arrays){
-  return arrays.reduce((acc, curr) => {
-    const next = [];
-    acc.forEach(a => curr.forEach(c => next.push([...a, c])));
-    return next;
-  }, [[]]);
-}
-async function fetchTamilSuggestion(word){
-  try{
-    const url = `https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ta-t-i0-und&num=6&cp=0&cs=1&ie=utf-8&oe=utf-8`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(!Array.isArray(data) || data[0] !== 'SUCCESS' || !Array.isArray(data[1]) || !data[1].length) return null;
-
-    const segments = data[1]; // one [inputSegment, [suggestions...]] pair per space-separated word
-    // Capture every suggested option for every word (capped per word so combinations stay manageable).
-    const perWordOptions = segments.map(seg => {
-      const opts = (seg[1] && seg[1].length) ? seg[1] : [seg[0]];
-      return opts.slice(0, 4);
-    });
-    const best_fit_tamil = perWordOptions.map(opts => opts[0]).join(' ');
-
-    // All permutations/combinations across the words' option lists.
-    const combos = cartesianProduct(perWordOptions).map(parts => parts.join(' '));
-    const alternatives = [...new Set(combos)].filter(a => a && a !== best_fit_tamil).slice(0, 30);
-
-    return { best_fit_tamil, alternatives };
-  }catch(e){
-    console.warn('Google Input Tools lookup failed', e);
-    return null;
-  }
-}
-const TA_NAME_COMPANION_FIELDS = new Set(['assoNameTa','firmNameTa','repNameTa']);
+/* ---------------- Tamil / English toggle ---------------- */
+let lang = lsGet(LS_LANG, 'en');
+const TA = {
+  'Association':'சங்கம்', 'Member Firms':'உறுப்பினர் நிறுவனங்கள்', 'Representatives':'பிரதிநிதிகள்', 'Representative':'பிரதிநிதி',
+  'Select or create':'தேர்ந்தெடுக்கவும் அல்லது புதிதாக உருவாக்கவும்',
+  'Select an association first':'முதலில் ஒரு சங்கத்தைத் தேர்ந்தெடுக்கவும்',
+  'Select a firm first':'முதலில் ஒரு நிறுவனத்தைத் தேர்ந்தெடுக்கவும்',
+  'Search associations…':'சங்கங்களைத் தேடுங்கள்…', 'Search firms…':'நிறுவனங்களைத் தேடுங்கள்…', 'Search representatives…':'பிரதிநிதிகளைத் தேடுங்கள்…',
+  'No associations yet. Tap New to add one.':'இன்னும் சங்கங்கள் இல்லை. புதிதாக சேர்க்க "புதியது" ஐ தட்டவும்.',
+  'Select an Association above to see its firms.':'அதன் நிறுவனங்களைப் பார்க்க மேலே ஒரு சங்கத்தைத் தேர்ந்தெடுக்கவும்.',
+  'No firms under this association yet.':'இந்த சங்கத்தின் கீழ் இன்னும் நிறுவனங்கள் இல்லை.',
+  'Select a Member Firm above to see its representatives.':'அதன் பிரதிநிதிகளைப் பார்க்க மேலே ஒரு நிறுவனத்தைத் தேர்ந்தெடுக்கவும்.',
+  'No representatives for this firm yet.':'இந்த நிறுவனத்திற்கு இன்னும் பிரதிநிதிகள் இல்லை.',
+  'Association Name':'சங்கத்தின் பெயர்', 'Geographical Scope':'புவியியல் எல்லை',
+  'Registration No.':'பதிவு எண்.', 'Parent Association':'மூல சங்கம்', 'Phone':'தொலைபேசி', 'Email':'மின்னஞ்சல்',
+  'Geo Type':'புவியியல் வகை', 'Geo Scope':'புவியியல் எல்லை',
+  'Firm Name':'நிறுவனத்தின் பெயர்', 'Parent Firm':'மூல நிறுவனம்', 'Business Category':'வணிக வகை', 'Name (Tamil)':'பெயர் (தமிழில்)',
+  'GST No.':'ஜிஎஸ்டி எண்.', 'PAN No.':'பான் எண்.', 'Notes':'குறிப்புகள்', 'Door No.':'கதவு எண்.', 'Street Name':'தெரு பெயர்',
+  'Area':'பகுதி', 'Town':'நகரம்', 'District':'மாவட்டம்', 'Province':'மாநிலம்', 'Pincode':'அஞ்சல் குறியீடு',
+  'Representative Name':'பிரதிநிதியின் பெயர்', 'Parent Representative':'மூல பிரதிநிதி', 'Relation':'உறவு',
+  'Phone 1':'தொலைபேசி 1', 'Phone 2':'தொலைபேசி 2', 'Aadhaar No.':'ஆதார் எண்.', 'Date of Birth':'பிறந்த தேதி', 'Anniversary':'திருமண நாள்',
+  'area':'பகுதி', 'town/city':'நகரம்', 'district':'மாவட்டம்', 'province':'மாநிலம்',
+  'Assoc':'சங்கம்', 'Firm':'நிறுவனம்', 'Rep':'பிரதிநிதி',
+  'Delete':'நீக்கு', 'New':'புதியது', 'Discard':'நிராகரி', 'Edit':'திருத்து', 'Save':'சேமி',
+  'Navigate to…':'எங்கு செல்ல வேண்டும்…', 'Delete this record?':'இந்த பதிவை நீக்கவா?',
+  'Yes, delete':'ஆம், நீக்கு', 'Cancel':'ரத்துசெய்', 'Close':'மூடு',
+  '— None —':'— ஏதுமில்லை —', 'Tap to choose':'தேர்ந்தெடுக்க தட்டவும்', 'Pick a Geo Type first':'முதலில் புவியியல் வகையைத் தேர்ந்தெடுக்கவும்',
+};
+function tr(key){ return lang==='ta' ? (TA[key] || key) : key; }
 
 function lsGet(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }catch(e){ return fallback; } }
 function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 
 /* ---------------- In-memory data ---------------- */
 let ASSOS = [], FIRMS = [], REPS = [];
-let learning = lsGet(LS_LEARN, { areaSuggestions:{}, townSuggestions:{}, streetSuggestions:{}, firmCategories:{}, repRelations:{}, geoScopes:{area:[],'town/city':[],district:[],province:[]} });
+let learning = lsGet(LS_LEARN, { areaSuggestions:{}, townSuggestions:{}, streetSuggestions:{}, firmCategories:{}, repRelations:{}, memOwnType:{}, geoScopes:{area:[],'town/city':[],district:[],province:[]} });
 if(!learning.streetSuggestions) learning.streetSuggestions = {};
-function saveLearning(){ lsSet(LS_LEARN, learning); }
+if(!learning.memOwnType) learning.memOwnType = {};
+const OWNTYPE_PRESETS = ['Sole Proprietorship','Partnership Firm','Private Limited','LLP','One Person Company','Public Limited','Section 8 Company','Nidhi Company','Producer Company','HUF','Cooperative Society','Joint Venture','Branch Office','Liaison Office','Project Office','Wholly Owned Subsidiary','Joint Stock Company','Small Scale Industry','MSME','Startup (DPIIT)','Franchise Outlet','Agency/Commission','Trust','Society','NGO'];
+OWNTYPE_PRESETS.forEach(v=>{ if(!(v in learning.memOwnType)) learning.memOwnType[v] = 1; });
+const CLOUD_LIST_SOURCES = ['firmCategories','repRelations','streetSuggestions','memOwnType'];
+function saveLearning(){
+  lsSet(LS_LEARN, learning);
+  if(!localMode){
+    CLOUD_LIST_SOURCES.forEach(src=>{
+      try{ setDoc(doc(db,'lists',src), { values: learning[src]||{} }).catch(e=>console.warn('list cloud sync failed', src, e)); }
+      catch(e){ console.warn('list cloud sync failed', src, e); }
+    });
+  }
+}
 
 /* ---------------- Firestore <-> local sync helpers ---------------- */
 function loadLocalOnly(){
@@ -264,20 +254,26 @@ function loadLocalOnly(){
 async function syncFromCloud(){
   if(localMode) return false;
   try{
-    const [aSnap,fSnap,rSnap] = await Promise.all([
+    const [aSnap,fSnap,rSnap,lSnap] = await Promise.all([
       getDocs(collection(db,'associations')),
       getDocs(collection(db,'firms')),
-      getDocs(collection(db,'representatives'))
+      getDocs(collection(db,'representatives')),
+      getDocs(collection(db,'lists'))
     ]);
     ASSOS = aSnap.docs.map(d=>({id:d.id, ...d.data()}));
     FIRMS = fSnap.docs.map(d=>({id:d.id, ...d.data()}));
     REPS = rSnap.docs.map(d=>({id:d.id, ...d.data()}));
-    lsSet(LS_ASSO, ASSOS); lsSet(LS_FIRM, FIRMS); lsSet(LS_REP, REPS);
+    lSnap.docs.forEach(d=>{
+      const vals = (d.data()||{}).values || {};
+      learning[d.id] = {...(learning[d.id]||{}), ...vals};
+    });
+    lsSet(LS_ASSO, ASSOS); lsSet(LS_FIRM, FIRMS); lsSet(LS_REP, REPS); lsSet(LS_LEARN, learning);
     return true;
   }catch(e){
     console.warn('Firestore read failed, staying on local cache', e);
     localMode = true;
     statusBar.textContent = 'Local mode (offline) — data saved on this device';
+    logEvent(statusBar.textContent);
     return false;
   }
 }
@@ -374,7 +370,6 @@ const TITLE_CASE_FIELDS = new Set([
   'assoName','assoGeoScope','firmName','firmArea','firmTown','firmDistrict','firmProvince','firmStreet',
   'repName','repArea','repTown','repDistrict','repProvince','repStreet'
 ]);
-const NAME_FIELDS_FOR_TRANSLITERATION = new Set(['assoName','firmName','repName']);
 
 function durationSince(dateStr){
   if(!dateStr) return null;
@@ -415,6 +410,20 @@ function startThemeCycle(){
   setInterval(()=>{
     applyTheme(Math.floor(Math.random()*THEMES.length));
   }, 10*60*1000); // auto random cycle every 10 minutes
+}
+
+/* ---------------- Keep bottom bar permanently attached, even when the keyboard opens ---------------- */
+if(window.visualViewport){
+  const vv = window.visualViewport;
+  function pinBottomBar(){
+    const bar = document.getElementById('bottomBar');
+    if(!bar) return;
+    const offset = window.innerHeight - vv.height - vv.offsetTop;
+    bar.style.bottom = Math.max(0, offset) + 'px';
+  }
+  vv.addEventListener('resize', pinBottomBar);
+  vv.addEventListener('scroll', pinBottomBar);
+  pinBottomBar();
 }
 
 /* ---------------- Keep focused field visible above fixed bottom bars ---------------- */
@@ -467,6 +476,26 @@ logLine.addEventListener('focus', ()=> setLogExpanded(true));
 logLine.addEventListener('blur', ()=> setLogExpanded(false));
 logLine.addEventListener('click', ()=> logLine.focus());
 
+/* ---------------- Tamil / English toggle ---------------- */
+function applyLanguageUI(){
+  document.getElementById('assoHeaderLabel').textContent = tr('Association');
+  document.getElementById('firmHeaderLabel').textContent = tr('Member Firms');
+  document.getElementById('repHeaderLabel').textContent = tr('Representatives');
+}
+function toggleLanguage(){
+  lang = (lang==='en') ? 'ta' : 'en';
+  lsSet(LS_LANG, lang);
+  applyLanguageUI();
+  // Force search boxes/lists/forms to rebuild so their static text picks up the new language.
+  document.getElementById('assoBody').innerHTML = '';
+  document.getElementById('firmBody').innerHTML = '';
+  document.getElementById('repBody').innerHTML = '';
+  renderAll();
+  refreshActionBar();
+  logEvent(`Language set to ${lang==='en' ? 'English' : 'தமிழ்'}.`, {transient:true});
+}
+
+
 /* ---------------- Learning helpers ---------------- */
 function ensureFreq(obj, key){
   if(!key) return;
@@ -516,23 +545,23 @@ function geoScopeOptions(type){
 /* ---------------- Field definitions ---------------- */
 const ASSO_FIELDS = [
  {id:'assoName', label:'Association Name', type:'text', max:60, required:true},
- {id:'assoNameTa', label:'Name (Tamil)', type:'text', max:60},
- {id:'assoReg', label:'Registration No.', type:'text', max:30, row:'r1'},
- {id:'assoParent', label:'Parent Association', type:'parent', coll:'asso', row:'r1'},
+ {id:'assoReg', label:'Registration No.', type:'text', max:30},
+ {id:'assoParent', label:'Parent Association', type:'parent', coll:'asso'},
  {id:'assoPhone', label:'Phone', type:'phone', required:true},
  {id:'assoEmail', label:'Email', type:'email'},
- {id:'assoGeoType', label:'Geo Type', type:'geotype', required:true, row:'r2'},
- {id:'assoGeoScope', label:'Geo Scope', type:'geoscope', required:true, max:60, row:'r2'},
+ {id:'assoGeoType', label:'Geo Type', type:'geotype', required:true},
+ {id:'assoGeoScope', label:'Geo Scope', type:'geoscope', required:true, max:60},
 ];
 const FIRM_FIELDS = [
  {id:'firmName', label:'Firm Name', type:'text', max:60, required:true},
  {id:'firmNameTa', label:'Name (Tamil)', type:'text', max:60},
- {id:'firmParent', label:'Parent Firm', type:'parent', coll:'firm', row:'r1'},
- {id:'firmCategory', label:'Business Category', type:'suggest', source:'firmCategories', max:15, row:'r1'},
- {id:'firmGst', label:'GST No.', type:'gst', max:15, row:'r2'},
- {id:'firmPan', label:'PAN No.', type:'pan', max:10, row:'r2'},
- {id:'firmPhone', label:'Phone', type:'phone', row:'r3'},
- {id:'firmEmail', label:'Email', type:'email', row:'r3'},
+ {id:'firmParent', label:'Parent Firm', type:'parent', coll:'firm'},
+ {id:'firmCategory', label:'Business Category', type:'suggest', source:'firmCategories', max:15},
+ {id:'memOwnType', label:'Ownership Type', type:'suggest', source:'memOwnType', max:25},
+ {id:'firmGst', label:'GST No.', type:'gst', max:15},
+ {id:'firmPan', label:'PAN No.', type:'pan', max:10},
+ {id:'firmPhone', label:'Phone', type:'phone'},
+ {id:'firmEmail', label:'Email', type:'email'},
  {id:'firmNotes', label:'Notes', type:'textarea', max:300},
  {id:'firmDoor', label:'Door No.', type:'text', max:7},
  {id:'firmStreet', label:'Street Name', type:'suggest', source:'streetSuggestions', max:60},
@@ -545,14 +574,17 @@ const FIRM_FIELDS = [
 const REP_FIELDS = [
  {id:'repName', label:'Representative Name', type:'text', max:60, required:true},
  {id:'repNameTa', label:'Name (Tamil)', type:'text', max:60},
- {id:'repParent', label:'Parent Representative', type:'parent', coll:'rep', row:'r1'},
- {id:'repRelation', label:'Relation', type:'suggest', source:'repRelations', max:15, row:'r1'},
- {id:'repPhone1', label:'Phone 1', type:'phone', required:true, row:'r2'},
- {id:'repPhone2', label:'Phone 2', type:'phone', row:'r2'},
- {id:'repEmail', label:'Email', type:'email', row:'r3'},
- {id:'repAadhar', label:'Aadhaar No.', type:'aadhar', max:12, row:'r3'},
- {id:'repDob', label:'Date of Birth', type:'dob', max:60, row:'r4'},
- {id:'repAnniv', label:'Anniversary', type:'anniv', max:60, row:'r4'},
+ // The next four sit in a left column beside the photo (see CLUSTER_WITH_PHOTO / renderForm).
+ {id:'repParent', label:'Parent Representative', type:'parent', coll:'rep'},
+ {id:'repRelation', label:'Relation', type:'suggest', source:'repRelations', max:15},
+ {id:'repSex', label:'Sex', type:'select', options:['Male','Female','TransG'], def:'Male'},
+ {id:'repAadhar', label:'Aadhaar No.', type:'aadhar', max:12},
+ {id:'repPhoto', label:'Photo', type:'photo'},
+ {id:'repPhone1', label:'Phone 1', type:'phone', required:true},
+ {id:'repPhone2', label:'Phone 2', type:'phone'},
+ {id:'repEmail', label:'Email', type:'email'},
+ {id:'repDob', label:'Date of Birth', type:'dob', max:60},
+ {id:'repAnniv', label:'Anniversary', type:'anniv', max:60},
  {id:'repDoor', label:'Door No.', type:'text', max:7},
  {id:'repStreet', label:'Street Name', type:'suggest', source:'streetSuggestions', max:60},
  {id:'repArea', label:'Area', type:'area', max:60},
@@ -616,9 +648,9 @@ function parentOptions(kind, selfId){
 
 /* ---------------- Field rendering ---------------- */
 const FULL_WIDTH_TYPES = ['textarea'];
-const CH_BY_TYPE = { phone:12, email:22, pin:8, gst:17, pan:12, aadhar:14, dob:13, anniv:13, geotype:14, parent:20 };
+const CH_BY_TYPE = { phone:12, email:22, pin:8, gst:17, pan:12, aadhar:14, dob:13, anniv:13, geotype:14, parent:20, select:11 };
 function fieldWidthStyle(f){
-  if(f.row) return 'flex:1 1 0;min-width:0;width:auto;';
+  if(f.type==='photo') return 'flex:0 0 auto;width:100px;';
   const max = f.max || (f.type==='geoscope' ? 60 : 0);
   if(FULL_WIDTH_TYPES.includes(f.type) || max>=50) return 'flex:1 1 100%;width:100%;';
   const ch = CH_BY_TYPE[f.type] || Math.max(9, Math.min((max||18)+2, 26));
@@ -626,10 +658,10 @@ function fieldWidthStyle(f){
 }
 function fieldGroup(f){
   const id = f.id.toLowerCase();
-  if(f.type==='parent' || id.includes('name')) return 'g1';       // identity
+  if(f.type==='parent' || f.type==='photo' || id.includes('name')) return 'g1'; // identity
   if(f.type==='phone' || f.type==='email') return 'g2';           // contact
   if(f.type==='gst' || f.type==='pan' || f.type==='aadhar') return 'g4'; // legal ID
-  if(f.type==='dob' || f.type==='anniv') return 'g5';             // dates
+  if(f.type==='dob' || f.type==='anniv' || f.type==='select') return 'g5'; // dates + personal
   if(f.type==='area' || f.type==='town' || f.type==='geoscope' || f.type==='geotype'
      || id.includes('district') || id.includes('province') || id.includes('door')
      || id.includes('pin') || id.includes('street')) return 'g3'; // address
@@ -637,7 +669,7 @@ function fieldGroup(f){
 }
 function fieldWrap(f, innerHtml){
   return `<div class="field" data-grp="${fieldGroup(f)}" style="${fieldWidthStyle(f)}" data-field="${f.id}">
-    <label>${f.label}${f.required?' *':''}</label>
+    <label>${tr(f.label)}${f.required?' *':''}</label>
     ${innerHtml}
     <span class="errmsg" id="err_${f.id}"></span>
   </div>`;
@@ -646,11 +678,14 @@ function renderChoiceInput(f, opts, val, dis){
   const current = opts.find(o=>o.value===val);
   const labelText = current ? current.label : '';
   if(opts.length < 9){
-    return `<input type="hidden" id="fld_${f.id}" value="${val||''}">
-      <input type="text" id="disp_${f.id}" class="choicebox" readonly value="${labelText}" placeholder="Tap to choose" ${dis}>`;
+    return `<div style="position:relative">
+      <input type="hidden" id="fld_${f.id}" value="${val||''}">
+      <input type="text" id="disp_${f.id}" class="choicebox" readonly value="${labelText}" placeholder="${tr('Tap to choose')}" ${dis}>
+      <div class="choice-box" id="cbox_${f.id}" style="display:none"></div>
+    </div>`;
   }
   const optHtml = opts.map(o=>`<option value="${o.value}" ${o.value===val?'selected':''}>${o.label}</option>`).join('');
-  return `<select id="fld_${f.id}" ${dis}><option value="">— None —</option>${optHtml}</select>`;
+  return `<select id="fld_${f.id}" ${dis}><option value="">${tr('— None —')}</option>${optHtml}</select>`;
 }
 
 function renderField(kind, f, data, editable){
@@ -664,22 +699,33 @@ function renderField(kind, f, data, editable){
     return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
   }
   if(f.type==='geotype'){
-    const opts = GEO_TYPES.map(t=>({value:t, label:t}));
+    const opts = GEO_TYPES.map(t=>({value:t, label:tr(t)}));
     return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
+  }
+  if(f.type==='select'){
+    const opts = f.options.map(o=>({value:o, label:tr(o)}));
+    return fieldWrap(f, renderChoiceInput(f, opts, val, dis));
+  }
+  if(f.type==='photo'){
+    return fieldWrap(f, `<div class="photo-wrap">
+      <img id="prev_${f.id}" class="photo-preview" src="${val}" style="${val?'':'display:none'}">
+      <input type="hidden" id="fld_${f.id}" value="${val}">
+      <input type="file" id="file_${f.id}" accept="image/*" ${dis}>
+      ${val?`<button type="button" class="photo-remove" id="rm_${f.id}" ${dis}>${tr('Remove')}</button>`:''}
+    </div>`);
   }
   if(f.type==='geoscope'){
     const type = data.assoGeoType || '';
-    const list = geoScopeOptions(type);
-    const dl = list.map(v=>`<option value="${v}">`).join('');
-    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="60" value="${val}" ${dis} ${type?'':`placeholder="Pick a Geo Type first"`}>
-      <datalist id="dl_${f.id}">${dl}</datalist>`);
+    return fieldWrap(f, `<div style="position:relative">
+      <input id="fld_${f.id}" type="text" maxlength="60" value="${val}" ${dis} autocomplete="off" ${type?'':`placeholder="${tr('Pick a Geo Type first')}"`}>
+      <div class="suggest-box" id="sugg_${f.id}" style="display:none"></div>
+    </div>`);
   }
   if(f.type==='suggest'){
-    const freqObj = learning[f.source] || {};
-    const list = topByFreq(freqObj);
-    const dl = list.map(v=>`<option value="${v}">`).join('');
-    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="${f.max}" value="${val}" ${dis}>
-      <datalist id="dl_${f.id}">${dl}</datalist>`);
+    return fieldWrap(f, `<div style="position:relative">
+      <input id="fld_${f.id}" type="text" maxlength="${f.max}" value="${val}" ${dis} autocomplete="off">
+      <div class="suggest-box" id="sugg_${f.id}" style="display:none"></div>
+    </div>`);
   }
   if(f.type==='area' || f.type==='town'){
     return fieldWrap(f, `<div style="position:relative">
@@ -709,30 +755,121 @@ function renderField(kind, f, data, editable){
   }
   // text / phone / email / pin default
   const inputType = f.type==='email' ? 'email' : 'text';
-  const ph = f.type==='phone' ? 'e.g. 9876543210' : f.type==='email' ? 'e.g. name@example.com' : f.type==='pin' ? 'e.g. 632006' : (TA_NAME_COMPANION_FIELDS.has(f.id) ? 'Fills in automatically — pick an alternative or type your own' : '');
+  const ph = f.type==='phone' ? 'e.g. 9876543210' : f.type==='email' ? 'e.g. name@example.com' : f.type==='pin' ? 'e.g. 632006' : '';
   const numeric = f.type==='phone' ? 'inputmode="tel" pattern="[0-9]*"' : f.type==='pin' ? 'inputmode="numeric" pattern="[0-9]*"' : '';
-  if(TA_NAME_COMPANION_FIELDS.has(f.id)){
-    return fieldWrap(f, `<input list="dl_${f.id}" id="fld_${f.id}" type="text" maxlength="${f.max||100}" value="${val}" ${dis} placeholder="${ph}">
-      <datalist id="dl_${f.id}"></datalist>`);
-  }
   return fieldWrap(f, `<input id="fld_${f.id}" type="${inputType}" maxlength="${f.max||100}" value="${val}" ${dis} ${numeric} ${ph?`placeholder="${ph}"`:''}>`);
 }
 
+// Rep-only: these sit in a left column beside the photo instead of flowing with the rest.
+const CLUSTER_WITH_PHOTO = ['repParent','repRelation','repSex','repAadhar'];
 function renderForm(kind, fields, data, editable){
-  let html = '';
-  let i = 0;
-  while(i < fields.length){
-    const f = fields[i];
-    const next = fields[i+1];
-    if(f.row && next && next.row === f.row){
-      html += `<div class="field-row">${renderField(kind,f,data,editable)}${renderField(kind,next,data,editable)}</div>`;
-      i += 2;
-    } else {
-      html += renderField(kind, f, data, editable);
-      i += 1;
-    }
+  const photoField = fields.find(f=>f.type==='photo');
+  if(photoField){
+    const clusterFields = fields.filter(f=> CLUSTER_WITH_PHOTO.includes(f.id));
+    const restFields = fields.filter(f=> f.id!==photoField.id && !CLUSTER_WITH_PHOTO.includes(f.id));
+    return `<div class="photo-cluster">
+        <div class="photo-cluster-fields field-grid">${clusterFields.map(f=>renderField(kind, f, data, editable)).join('')}</div>
+        <div class="photo-cluster-photo">${renderField(kind, photoField, data, editable)}</div>
+      </div>
+      <div class="field-grid">${restFields.map(f=>renderField(kind, f, data, editable)).join('')}</div>`;
   }
-  return `<div class="field-grid">${html}</div>`;
+  return `<div class="field-grid">${fields.map(f=>renderField(kind, f, data, editable)).join('')}</div>`;
+}
+
+// Move focus to the next visible, enabled input in the whole form (spans the photo cluster and
+// the main grid alike) — used after any inline popup pick, so picking a value always advances.
+function focusNextInput(fromEl){
+  const scope = fromEl.closest('form') || fromEl.closest('.field-grid');
+  if(!scope) return;
+  const focusables = Array.from(scope.querySelectorAll('input, select, textarea'))
+    .filter(e => !e.disabled && e.type!=='hidden' && e.offsetParent!==null);
+  const idx = focusables.indexOf(fromEl);
+  if(idx>=0 && idx<focusables.length-1){
+    focusables[idx+1].focus();
+  }
+}
+
+// Generic inline suggestion list for plain string options (suggest / geoscope fields): opens on
+// focus, filters as you type, and picking a row commits the value and moves to the next input.
+function wireInlineTextSuggest(el, box, getOptionsFn){
+  if(!box) return;
+  const openList = ()=>{
+    const q = el.value.trim().toLowerCase();
+    const all = getOptionsFn();
+    const matches = (q ? all.filter(k=>k.toLowerCase().includes(q)) : all).slice(0,8);
+    if(!matches.length){ box.style.display='none'; box.innerHTML=''; return; }
+    box.innerHTML = matches.map(k=>`<div class="suggest-row" data-val="${k.replace(/"/g,'&quot;')}">${k}</div>`).join('');
+    box.style.display='block';
+    box.querySelectorAll('.suggest-row').forEach(row=>{
+      row.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        el.value = row.dataset.val;
+        box.style.display='none';
+        el.dispatchEvent(new Event('input'));
+        el.dispatchEvent(new Event('change'));
+        focusNextInput(el);
+      });
+    });
+  };
+  el.addEventListener('focus', openList);
+  el.addEventListener('input', openList);
+  el.addEventListener('blur', ()=> setTimeout(()=>{ box.style.display='none'; }, 150));
+}
+
+/* ---------------- Photo upload: auto-crop + resize to a passport-style photo ---------------- */
+const PHOTO_W = 240, PHOTO_H = 320, PHOTO_MAX_BYTES = 180000;
+function processPhotoFile(file, cb){
+  if(!file.type || !file.type.startsWith('image/')){ logEvent('Please choose an image file for the photo.'); return; }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const canvas = document.createElement('canvas');
+      canvas.width = PHOTO_W; canvas.height = PHOTO_H;
+      const ctx = canvas.getContext('2d');
+      const srcRatio = img.width/img.height, dstRatio = PHOTO_W/PHOTO_H;
+      let sx,sy,sw,sh;
+      if(srcRatio > dstRatio){ sh = img.height; sw = sh*dstRatio; sx = (img.width-sw)/2; sy = 0; }
+      else { sw = img.width; sh = sw/dstRatio; sx = 0; sy = (img.height-sh)/2; }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, PHOTO_W, PHOTO_H);
+      let quality = 0.82, dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while(dataUrl.length*0.75 > PHOTO_MAX_BYTES && quality > 0.35){ quality -= 0.1; dataUrl = canvas.toDataURL('image/jpeg', quality); }
+      cb(dataUrl);
+    };
+    img.onerror = ()=> logEvent('Could not read that image file — please try another.');
+    img.src = e.target.result;
+  };
+  reader.onerror = ()=> logEvent('Could not read that image file — please try another.');
+  reader.readAsDataURL(file);
+}
+function wirePhotoField(kind, f, data){
+  const fileEl = document.getElementById('file_'+f.id);
+  const hidEl = document.getElementById('fld_'+f.id);
+  if(!fileEl || !hidEl) return;
+  fileEl.addEventListener('change', ()=>{
+    const file = fileEl.files && fileEl.files[0];
+    if(!file) return;
+    processPhotoFile(file, (dataUrl)=>{
+      hidEl.value = dataUrl;
+      hidEl.dispatchEvent(new Event('input'));
+      const holder = document.querySelector(`[data-field="${f.id}"]`);
+      if(holder){
+        holder.outerHTML = renderField(kind, f, {...data, [f.id]: dataUrl}, true);
+        wirePhotoField(kind, f, {...data, [f.id]: dataUrl});
+      }
+      logEvent('Photo updated — it will be saved with this representative.', {transient:true});
+    });
+  });
+  const rmEl = document.getElementById('rm_'+f.id);
+  if(rmEl){
+    rmEl.addEventListener('click', ()=>{
+      const holder = document.querySelector(`[data-field="${f.id}"]`);
+      if(holder){
+        holder.outerHTML = renderField(kind, f, {...data, [f.id]: ''}, true);
+        wirePhotoField(kind, f, {...data, [f.id]: ''});
+      }
+    });
+  }
 }
 
 /* ---------------- Address autofill + custom suggestion dropdowns ---------------- */
@@ -789,6 +926,7 @@ function showAddressSuggestions(f, kind, el){
       el.value = row.dataset.val;
       box.style.display='none';
       applyAddressAutofill(kind, f, row.dataset.val);
+      focusNextInput(el);
     });
   });
   logEvent(`${matches.length} saved ${f.label.toLowerCase()} suggestion${matches.length>1?'s':''} for "${el.value}".`, {transient:true});
@@ -845,60 +983,38 @@ function wireValidation(kind, fields, data){
     el.addEventListener('input', update);
     el.addEventListener('blur', ()=>{
       if(TITLE_CASE_FIELDS.has(f.id) && el.value){ el.value = toTitleCase(el.value); }
-      if(NAME_FIELDS_FOR_TRANSLITERATION.has(f.id) && el.value.trim()){
-        const word = el.value.trim();
-        const taEl = document.getElementById('fld_'+f.id+'Ta');
-        const dl = document.getElementById('dl_'+f.id+'Ta');
-        // Only re-fetch if the English name actually changed since the last lookup —
-        // but whenever it did change, keep the Tamil field in sync with it.
-        if(taEl && word !== el.dataset.lastTaSource){
-          el.dataset.lastTaSource = word;
-          logEvent(`Looking up the Tamil word for "${word}"…`, {transient:true});
-          fetchTamilSuggestion(word).then(result=>{
-            if(!result){ logEvent(`Couldn't fetch a Tamil word for "${word}" — enter it manually.`, {transient:true}); return; }
-            taEl.value = result.best_fit_tamil;
-            if(dl){
-              const opts = [result.best_fit_tamil, ...result.alternatives].filter(Boolean);
-              dl.innerHTML = opts.map(o=>`<option value="${o}">`).join('');
-            }
-            logEvent(`Tamil suggestion ready for "${word}": ${result.best_fit_tamil}`, {transient:true});
-          });
-        }
-      }
       update();
     });
 
-    // Tamil companion fields: live "as you type" suggestions, same as an online input tool
-    if(TA_NAME_COMPANION_FIELDS.has(f.id)){
-      const dl = document.getElementById('dl_'+f.id);
-      const liveSuggest = debounce(()=>{
-        const typed = el.value.trim();
-        if(!typed || !dl) return;
-        fetchTamilSuggestion(typed).then(result=>{
-          if(!result || !dl) return;
-          const opts = [result.best_fit_tamil, ...result.alternatives].filter(Boolean);
-          dl.innerHTML = opts.map(o=>`<option value="${o}">`).join('');
-        });
-      }, 350);
-      el.addEventListener('input', liveSuggest);
-    }
-
-    // Parent / GeoType: tap opens a picker popup straight away when there are few fixed options
+    // Parent / GeoType / Sex: focus opens an inline picker right under the field; picking a
+    // value closes it and moves focus straight to the next input (no popup, no extra tap).
     if(dispEl){
       let opts = [];
       if(f.type==='parent') opts = parentOptions(f.coll, data.id).map(o=>({value:o.id, label:o.assoName||o.firmName||o.repName}));
-      if(f.type==='geotype') opts = GEO_TYPES.map(t=>({value:t, label:t}));
+      if(f.type==='geotype') opts = GEO_TYPES.map(t=>({value:t, label:tr(t)}));
+      if(f.type==='select') opts = f.options.map(o=>({value:o, label:tr(o)}));
+      const cbox = document.getElementById('cbox_'+f.id);
       const openPicker = ()=>{
-        showPopup(f.label, opts.map(o=>({label:o.label, value:o.value})), el.value, (v)=>{
-          el.value = v;
-          const chosen = opts.find(o=>o.value===v);
-          dispEl.value = chosen ? chosen.label : '';
-          el.dispatchEvent(new Event('change'));
-          el.dispatchEvent(new Event('input'));
+        if(!cbox) return;
+        cbox.innerHTML = opts.map(o=>`<div class="choice-row ${o.value===el.value?'current':''}" data-v="${o.value}">${o.label}</div>`).join('');
+        cbox.style.display = 'block';
+        cbox.querySelectorAll('.choice-row').forEach(row=>{
+          row.addEventListener('mousedown', (e)=>{
+            e.preventDefault();
+            const v = row.dataset.v;
+            el.value = v;
+            const chosen = opts.find(o=>o.value===v);
+            dispEl.value = chosen ? chosen.label : '';
+            el.dispatchEvent(new Event('change'));
+            el.dispatchEvent(new Event('input'));
+            cbox.style.display = 'none';
+            focusNextInput(dispEl);
+          });
         });
       };
       dispEl.addEventListener('click', openPicker);
       dispEl.addEventListener('focus', openPicker);
+      dispEl.addEventListener('blur', ()=> setTimeout(()=>{ if(cbox) cbox.style.display='none'; }, 150));
     }
 
     // Area/Town: custom suggestion dropdown + autofill
@@ -925,6 +1041,15 @@ function wireValidation(kind, fields, data){
           }
         }
       });
+    }
+    if(f.type==='photo'){
+      wirePhotoField(kind, f, data);
+    }
+    if(f.type==='suggest'){
+      wireInlineTextSuggest(el, document.getElementById('sugg_'+f.id), ()=> topByFreq(learning[f.source]||{}, 40));
+    }
+    if(f.type==='geoscope'){
+      wireInlineTextSuggest(el, document.getElementById('sugg_'+f.id), ()=> geoScopeOptions(data.assoGeoType||''));
     }
     if(f.type==='geotype'){
       el.addEventListener('change', ()=>{
@@ -974,11 +1099,11 @@ function debounce(fn, ms){
 function renderAssoPanel(){
   const body = document.getElementById('assoBody');
   const summary = document.getElementById('assoSummary');
-  summary.textContent = state.selAsso ? nameOf('asso', state.selAsso) : 'Select or create';
+  summary.textContent = state.selAsso ? nameOf('asso', state.selAsso) : tr('Select or create');
 
   if(state.mode.asso==='browse'){
     if(!document.getElementById('assoSearch')){
-      body.innerHTML = `<input class="searchbox" id="assoSearch" placeholder="Search associations…" value="${state.search.asso}">
+      body.innerHTML = `<input class="searchbox" id="assoSearch" placeholder="${tr('Search associations…')}" value="${state.search.asso}">
         <div id="assoList"></div>`;
     }
     renderAssoList();
@@ -994,11 +1119,11 @@ function renderAssoList(){
   const q = state.search.asso.toLowerCase();
   const rows = ASSOS.filter(a=> !q || (a.assoName||'').toLowerCase().includes(q));
   if(!rows.length){
-    list.innerHTML = `<div class="empty-note">No associations yet. Tap New to add one.</div>`;
+    list.innerHTML = `<div class="empty-note">${tr('No associations yet. Tap New to add one.')}</div>`;
     return;
   }
   list.innerHTML = `<table class="data-table">
-    <thead><tr><th>Association Name</th><th>Geographical Scope</th></tr></thead>
+    <thead><tr><th>${tr('Association Name')}</th><th>${tr('Geographical Scope')}</th></tr></thead>
     <tbody>
       ${rows.map(a=>`<tr class="list-row ${a.id===state.selAsso?'selected':''}" data-id="${a.id}">
         <td>${a.assoName||'(unnamed)'}</td>
@@ -1013,14 +1138,14 @@ function renderFirmPanel(){
   const body = document.getElementById('firmBody');
   const summary = document.getElementById('firmSummary');
   if(!state.selAsso){
-    summary.textContent = 'Select an association first';
-    body.innerHTML = `<div class="empty-note">Select an Association above to see its firms.</div>`;
+    summary.textContent = tr('Select an association first');
+    body.innerHTML = `<div class="empty-note">${tr('Select an Association above to see its firms.')}</div>`;
     return;
   }
   summary.textContent = state.selFirm ? nameOf('firm', state.selFirm) : `Under: ${nameOf('asso', state.selAsso)}`;
   if(state.mode.firm==='browse'){
     if(!document.getElementById('firmSearch')){
-      body.innerHTML = `<input class="searchbox" id="firmSearch" placeholder="Search firms…" value="${state.search.firm}">
+      body.innerHTML = `<input class="searchbox" id="firmSearch" placeholder="${tr('Search firms…')}" value="${state.search.firm}">
         <div id="firmList"></div>`;
     }
     renderFirmList();
@@ -1037,7 +1162,7 @@ function renderFirmList(){
   list.innerHTML = FIRMS.filter(f=> f.assoId===state.selAsso && (!q || (f.firmName||'').toLowerCase().includes(q))).map(f=>`
     <div class="list-row ${f.id===state.selFirm?'selected':''}" data-id="${f.id}">
       <div><div class="lr-name">${f.firmName||'(unnamed)'}</div><div class="lr-sub">${f.firmTown||''} · ${f.firmCategory||''}</div></div>
-    </div>`).join('') || `<div class="empty-note">No firms under this association yet.</div>`;
+    </div>`).join('') || `<div class="empty-note">${tr('No firms under this association yet.')}</div>`;
 }
 const renderFirmListDebounced = debounce(renderFirmList, 120);
 
@@ -1045,14 +1170,14 @@ function renderRepPanel(){
   const body = document.getElementById('repBody');
   const summary = document.getElementById('repSummary');
   if(!state.selFirm){
-    summary.textContent = 'Select a firm first';
-    body.innerHTML = `<div class="empty-note">Select a Member Firm above to see its representatives.</div>`;
+    summary.textContent = tr('Select a firm first');
+    body.innerHTML = `<div class="empty-note">${tr('Select a Member Firm above to see its representatives.')}</div>`;
     return;
   }
   summary.textContent = state.selRep ? nameOf('rep', state.selRep) : `Under: ${nameOf('firm', state.selFirm)}`;
   if(state.mode.rep==='browse'){
     if(!document.getElementById('repSearch')){
-      body.innerHTML = `<input class="searchbox" id="repSearch" placeholder="Search representatives…" value="${state.search.rep}">
+      body.innerHTML = `<input class="searchbox" id="repSearch" placeholder="${tr('Search representatives…')}" value="${state.search.rep}">
         <div id="repList"></div>`;
     }
     renderRepList();
@@ -1069,7 +1194,7 @@ function renderRepList(){
   list.innerHTML = REPS.filter(r=> r.firmId===state.selFirm && (!q || (r.repName||'').toLowerCase().includes(q))).map(r=>`
     <div class="list-row ${r.id===state.selRep?'selected':''}" data-id="${r.id}">
       <div><div class="lr-name">${r.repName||'(unnamed)'}</div><div class="lr-sub">${r.repRelation||''} · ${r.repPhone1||''}</div></div>
-    </div>`).join('') || `<div class="empty-note">No representatives for this firm yet.</div>`;
+    </div>`).join('') || `<div class="empty-note">${tr('No representatives for this firm yet.')}</div>`;
 }
 const renderRepListDebounced = debounce(renderRepList, 120);
 
@@ -1141,122 +1266,49 @@ function renderAll(){
   renderAssoPanel(); renderFirmPanel(); renderRepPanel();
 }
 
-/* ---------------- Action bar logic ---------------- */
-function refreshActionBar(){
+/* ---------------- New / Edit / Save / Discard / Delete actions (called from the cascading menu) ---------------- */
+function startNew(){
   const kind = state.active;
-  const mode = state.mode[kind];
-  const hasSel = kind==='asso'?state.selAsso : kind==='firm'?state.selFirm : state.selRep;
-  const spaceName = kind==='asso'?'Assoc':kind==='firm'?'Firm':'Rep';
-
-  const ab1label = document.getElementById('ab1label');
-  const ab2 = document.getElementById('ab2'); // Delete
-  const ab2label = document.getElementById('ab2label');
-  const ab3 = document.getElementById('ab3'); // New / Discard
-  const ab3label = document.getElementById('ab3label');
-  const ab4 = document.getElementById('ab4'); // Edit/Save
-  const ab4label = document.getElementById('ab4label');
-
-  ab1label.textContent = spaceName;
-  ab2label.textContent = `Delete ${spaceName}`;
-
-  ab2.disabled = !hasSel || mode!=='browse';
-
-  if(mode==='browse'){
-    ab3.disabled = (kind==='firm' && !state.selAsso) || (kind==='rep' && !state.selFirm);
-    ab3label.textContent = `New ${spaceName}`;
-    document.querySelector('#ab3 .abicon').textContent = '➕';
-  } else {
-    ab3.disabled = false;
-    ab3label.textContent = `Discard ${spaceName}`;
-    document.querySelector('#ab3 .abicon').textContent = '↩️';
-  }
-
-  if(mode==='browse'){
-    ab4.disabled = !hasSel;
-    ab4label.textContent = `Edit ${spaceName}`;
-    document.querySelector('#ab4 .abicon').textContent = '✏️';
-  } else {
-    ab4.disabled = false;
-    ab4label.textContent = `Save ${spaceName}`;
-    document.querySelector('#ab4 .abicon').textContent = '✔️';
-  }
+  if(kind==='firm' && !state.selAsso){ alert(tr('Select an association first')+'.'); return; }
+  if(kind==='rep' && !state.selFirm){ alert(tr('Select a firm first')+'.'); return; }
+  state.prevSel[kind] = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
+  state.mode[kind] = 'new';
+  if(kind==='asso') state.selAsso=null;
+  if(kind==='firm') state.selFirm=null;
+  if(kind==='rep') state.selRep=null;
+  renderAll(); refreshActionBar();
+  const kindLabel = kind==='asso'?tr('Association'):kind==='firm'?tr('Member Firms'):tr('Representative');
+  logEvent(`Starting a new ${kindLabel} entry.`);
 }
-
-document.getElementById('ab1').onclick = ()=>{
-  showPopup('Navigate to…', [
-    {label:'Association', value:'asso'},
-    {label:'Member Firms', value:'firm'},
-    {label:'Representative', value:'rep'}
-  ], state.active, (v)=> setActivePanel(v));
-};
-
-document.getElementById('ab2').onclick = async ()=>{
+function startEdit(){
   const kind = state.active;
-  const id = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
-  if(!id) return;
-  const label = nameOf(kind, id) || 'this record';
-  showPopup('Delete this record?', [{label:'Yes, delete', value:'yes'},{label:'Cancel', value:'no'}], null, async (v)=>{
-    if(v==='yes'){
-      await deleteRecord(kind, id);
-      if(kind==='asso'){ state.selAsso=null; state.selFirm=null; state.selRep=null; }
-      if(kind==='firm'){ state.selFirm=null; state.selRep=null; }
-      if(kind==='rep'){ state.selRep=null; }
-      state.mode[kind]='browse';
-      renderAll(); refreshActionBar();
-      logEvent(`Deleted "${label}".`);
-    }
-  });
-};
-
-document.getElementById('ab3').onclick = ()=>{
-  const kind = state.active;
-  const mode = state.mode[kind];
-  if(mode==='browse'){
-    if(kind==='firm' && !state.selAsso){ alert('Select an association first.'); return; }
-    if(kind==='rep' && !state.selFirm){ alert('Select a firm first.'); return; }
-    state.prevSel[kind] = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
-    state.mode[kind] = 'new';
-    if(kind==='asso') state.selAsso=null;
-    if(kind==='firm') state.selFirm=null;
-    if(kind==='rep') state.selRep=null;
-    renderAll(); refreshActionBar();
-    applyTheme(Math.floor(Math.random()*THEMES.length));
-    const kindLabel = kind==='asso'?'Association':kind==='firm'?'Member Firms':'Representative';
-    logEvent(`Starting a new ${kindLabel} entry.`);
-  } else {
-    // Discard changes / cancel new entry
-    const wasNew = mode==='new';
-    state.mode[kind] = 'browse';
-    if(wasNew){
-      if(kind==='asso') state.selAsso = state.prevSel.asso;
-      if(kind==='firm') state.selFirm = state.prevSel.firm;
-      if(kind==='rep') state.selRep = state.prevSel.rep;
-    }
-    renderAll(); refreshActionBar();
-    logEvent('Discarded changes.', {transient:true});
-  }
-};
-
-document.getElementById('ab4').onclick = async ()=>{
-  const kind = state.active;
-  const mode = state.mode[kind];
   const hasSel = kind==='asso'?state.selAsso : kind==='firm'?state.selFirm : state.selRep;
-
-  if(mode==='browse'){
-    if(!hasSel) return;
-    state.mode[kind] = 'edit';
-    renderAll(); refreshActionBar();
-    logEvent(`Editing "${nameOf(kind, hasSel)}".`);
-    return;
+  if(!hasSel) return;
+  state.mode[kind] = 'edit';
+  renderAll(); refreshActionBar();
+  logEvent(`Editing "${nameOf(kind, hasSel)}".`);
+}
+function discardCurrent(){
+  const kind = state.active;
+  const mode = state.mode[kind];
+  const wasNew = mode==='new';
+  state.mode[kind] = 'browse';
+  if(wasNew){
+    if(kind==='asso') state.selAsso = state.prevSel.asso;
+    if(kind==='firm') state.selFirm = state.prevSel.firm;
+    if(kind==='rep') state.selRep = state.prevSel.rep;
   }
-
-  // Save (from new or edit)
+  renderAll(); refreshActionBar();
+  logEvent('Discarded changes.', {transient:true});
+}
+async function saveCurrent(){
+  const kind = state.active;
+  const mode = state.mode[kind];
   const fields = kind==='asso'?ASSO_FIELDS:kind==='firm'?FIRM_FIELDS:REP_FIELDS;
   if(!validateAll(fields)){
     logEvent('Please fix the highlighted fields before saving.');
     return;
   }
-
   let existing = {};
   if(mode==='edit'){
     existing = (kind==='asso'?ASSOS.find(a=>a.id===state.selAsso)
@@ -1277,6 +1329,7 @@ document.getElementById('ab4').onclick = async ()=>{
     learnAddress(saved.firmArea, saved.firmTown, saved.firmDistrict, saved.firmProvince, saved.firmPin);
     ensureFreq(learning.firmCategories, saved.firmCategory);
     ensureFreq(learning.streetSuggestions, saved.firmStreet);
+    ensureFreq(learning.memOwnType, saved.memOwnType);
     saveLearning();
     state.selFirm = saved.id;
   }
@@ -1290,29 +1343,102 @@ document.getElementById('ab4').onclick = async ()=>{
   state.mode[kind] = 'browse';
   renderAll(); refreshActionBar();
   logEvent(`Saved "${nameOf(kind, saved.id)}" successfully.`);
-};
-
-/* ---------------- Popup ---------------- */
-function showPopup(title, options, currentVal, onPick){
-  const root = document.getElementById('popupRoot');
-  const opts = options.map(o=>`<div class="popup-opt ${o.value===currentVal?'current':''}" data-v="${o.value}">${o.label}</div>`).join('');
-  root.innerHTML = `<div class="popup-overlay"><div class="popup-sheet">
-    <h3>${title}</h3><div id="popupOptsList">${opts}</div>
-    <button class="popup-close">Close</button>
-  </div></div>`;
-  root.querySelectorAll('.popup-opt').forEach(el=> el.addEventListener('click', ()=>{
-    onPick(el.dataset.v); root.innerHTML='';
-  }));
-  root.querySelector('.popup-close').addEventListener('click', ()=> root.innerHTML='');
-  root.querySelector('.popup-overlay').addEventListener('click', (e)=>{ if(e.target.classList.contains('popup-overlay')) root.innerHTML=''; });
 }
+async function deleteCurrent(){
+  const kind = state.active;
+  const id = kind==='asso'?state.selAsso:kind==='firm'?state.selFirm:state.selRep;
+  if(!id) return;
+  const label = nameOf(kind, id) || 'this record';
+  await deleteRecord(kind, id);
+  if(kind==='asso'){ state.selAsso=null; state.selFirm=null; state.selRep=null; }
+  if(kind==='firm'){ state.selFirm=null; state.selRep=null; }
+  if(kind==='rep'){ state.selRep=null; }
+  state.mode[kind]='browse';
+  renderAll(); refreshActionBar();
+  logEvent(`Deleted "${label}".`);
+}
+
+/* ---------------- Cascading Menu (replaces the old action bar) ---------------- */
+let menuState = { open:false, submenu:null }; // submenu: null | 'navigate' | 'delete'
+// Kept under its old name so every existing call site (renderAll(); refreshActionBar();)
+// still works — it just re-renders the menu contents if it's currently open.
+function refreshActionBar(){
+  if(menuState.open) renderMenu();
+}
+
+function closeMenu(){
+  menuState = { open:false, submenu:null };
+  const panel = document.getElementById('menuPanel');
+  if(panel){ panel.style.display='none'; panel.innerHTML=''; }
+  document.removeEventListener('click', onDocClickCloseMenu, true);
+}
+function onDocClickCloseMenu(e){
+  const panel = document.getElementById('menuPanel');
+  const btn = document.getElementById('menuBtn');
+  if((panel && panel.contains(e.target)) || (btn && btn.contains(e.target))) return;
+  closeMenu();
+}
+function openMenu(){
+  menuState = { open:true, submenu:null };
+  renderMenu();
+  document.addEventListener('click', onDocClickCloseMenu, true);
+}
+function toggleMenu(){
+  if(menuState.open) closeMenu(); else openMenu();
+}
+function renderMenu(){
+  const panel = document.getElementById('menuPanel');
+  if(!panel) return;
+  if(!menuState.open){ panel.style.display='none'; panel.innerHTML=''; return; }
+  panel.style.display = 'block';
+
+  const kind = state.active;
+  const mode = state.mode[kind];
+  const hasSel = kind==='asso'?state.selAsso : kind==='firm'?state.selFirm : state.selRep;
+  const spaceName = tr(kind==='asso'?'Assoc':kind==='firm'?'Firm':'Rep');
+  let rows = [];
+
+  if(menuState.submenu==='navigate'){
+    rows.push({label:'‹ '+tr('Back'), action:()=>{ menuState.submenu=null; renderMenu(); }});
+    [['asso','Association'],['firm','Member Firms'],['rep','Representative']].forEach(([v,l])=>{
+      rows.push({label:tr(l)+(state.active===v?' ✓':''), action:()=>{ setActivePanel(v); closeMenu(); }});
+    });
+  } else if(menuState.submenu==='delete'){
+    rows.push({label:'‹ '+tr('Back'), action:()=>{ menuState.submenu=null; renderMenu(); }});
+    rows.push({label:tr('Yes, delete'), danger:true, action:()=>{ deleteCurrent(); closeMenu(); }});
+    rows.push({label:tr('Cancel'), action:()=> closeMenu()});
+  } else {
+    rows.push({label:`${tr('Navigate')} — ${spaceName}`, arrow:'›', action:()=>{ menuState.submenu='navigate'; renderMenu(); }});
+    if(mode==='browse'){
+      const newDisabled = (kind==='firm' && !state.selAsso) || (kind==='rep' && !state.selFirm);
+      rows.push({label:`${tr('New')} ${spaceName}`, disabled:newDisabled, action:()=>{ startNew(); closeMenu(); }});
+      rows.push({label:`${tr('Edit')} ${spaceName}`, disabled:!hasSel, action:()=>{ startEdit(); closeMenu(); }});
+      rows.push({label:`${tr('Delete')} ${spaceName}`, arrow: hasSel?'›':undefined, disabled:!hasSel, danger:true, action:()=>{ menuState.submenu='delete'; renderMenu(); }});
+    } else {
+      rows.push({label:`${tr('Save')} ${spaceName}`, action:()=>{ saveCurrent(); closeMenu(); }});
+      rows.push({label:`${tr('Discard')} ${spaceName}`, action:()=>{ discardCurrent(); closeMenu(); }});
+    }
+    rows.push({label: lang==='en' ? 'தமிழ்' : 'English', action:()=>{ toggleLanguage(); renderMenu(); }});
+  }
+
+  panel.innerHTML = rows.map((r,i)=>`<div class="menu-item ${r.disabled?'disabled':''} ${r.danger?'danger':''}" data-i="${i}">
+      <span>${r.label}</span>${r.arrow?`<span class="mi-arrow">${r.arrow}</span>`:''}
+    </div>`).join('');
+  panel.querySelectorAll('.menu-item').forEach(el=>{
+    const r = rows[+el.dataset.i];
+    el.addEventListener('click', (e)=>{ e.stopPropagation(); if(!r.disabled) r.action(); });
+  });
+}
+document.getElementById('menuBtn').addEventListener('click', (e)=>{ e.stopPropagation(); toggleMenu(); });
 
 /* ---------------- Init ---------------- */
 async function init(){
   // 1) Show whatever is cached locally right away — no waiting on the network.
   loadLocalOnly();
   setupListDelegation();
-  applyTheme(Math.floor(Math.random()*THEMES.length)); // fresh random theme every load — not the last saved one
+  applyLanguageUI();
+  const savedTheme = lsGet(LS_THEME, null);
+  applyTheme(savedTheme!==null ? savedTheme : Math.floor(Math.random()*THEMES.length));
   setActivePanel('asso');
   statusBar.textContent = 'Showing local data — connecting…';
   logEvent(`Loaded ${ASSOS.length} association(s), ${FIRMS.length} firm(s), ${REPS.length} representative(s) from local cache.`);
