@@ -412,14 +412,14 @@ function toTitleCase(v){
   if(!v) return v;
   return v.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
-// Improved Tamil transliteration: a dictionary of common Tamil/South-Indian names is checked
-// first (this is what makes everyday names come out exactly right, Google-keyboard style),
-// and a syllable-by-syllable engine handles anything not in the list. Still not a real
-// translation service — the result always lands in a normal editable text field.
+// Tamil name transliteration: an established-spelling dictionary (Hindu, Muslim, Christian and
+// Tamil-regional names, as actually written in Tamil Nadu records/everyday use — not a
+// letter-by-letter phonetic guess) is checked first, word by word; only a name that isn't in the
+// list falls back to the syllable engine below as a last resort.
 const TAMIL_NAME_DICT = {
   kumar:'குமார்', suresh:'சுரேஷ்', ramesh:'ரமேஷ்', rajesh:'ராஜேஷ்', dinesh:'தினேஷ்', mahesh:'மகேஷ்',
   naresh:'நரேஷ்', lokesh:'லோகேஷ்', yogesh:'யோகேஷ்', mukesh:'முகேஷ்', prakash:'பிரகாஷ்', vikas:'விகாஸ்',
-  vikram:'விக்ரம்', vijay:'விஜய்', vinod:'வினோத்', vinodh:'வினோத்', mohan:'மோகன்', mohanraj:'மோகன்ராஜ்',
+  vikram:'விக்ரம்', vijay:'விஜய்', vinod:'விநோத்', vinodh:'விநோத்', mohan:'மோகன்', mohanraj:'மோகன்ராஜ்',
   raman:'ராமன்', ravi:'ரவி', ravichandran:'ரவிசந்திரன்', ravikumar:'ரவிகுமார்', arun:'அருண்',
   arjun:'அர்ஜுன்', ajith:'அஜித்', ajay:'அஜய்', anand:'ஆனந்த்', ananth:'அனந்த்', anandan:'ஆனந்தன்',
   balaji:'பாலாஜி', bala:'பாலா', balakumar:'பாலகுமார்', balan:'பாலன்', chandran:'சந்திரன்',
@@ -428,6 +428,7 @@ const TAMIL_NAME_DICT = {
   gokul:'கோகுல்', gokulnath:'கோகுல்நாத்', gopal:'கோபால்', gopalakrishnan:'கோபாலகிருஷ்ணன்',
   hari:'ஹரி', harish:'ஹரீஷ்', jagan:'ஜெகன்', jaganathan:'ஜெகநாதன்', kannan:'கண்ணன்', karan:'கரண்',
   karthik:'கார்த்திக்', karthikeyan:'கார்த்திகேயன்', krishna:'கிருஷ்ணா', krishnan:'கிருஷ்ணன்',
+  sreedharan:'ஸ்ரீதரன்', sridhar:'ஸ்ரீதர்', srinivasan:'ஸ்ரீனிவாசன்',
   loganathan:'லோகநாதன்', manikandan:'மணிகண்டன்', manoj:'மனோஜ்', muthu:'முத்து', murali:'முரளி',
   muralidharan:'முரளிதரன்', murugan:'முருகன்', nataraj:'நடராஜ்', natarajan:'நடராஜன்', naveen:'நவீன்',
   naveenkumar:'நவீன்குமார்', palani:'பழனி', palanivel:'பழனிவேல்', pandian:'பாண்டியன்', perumal:'பெருமாள்',
@@ -446,7 +447,21 @@ const TAMIL_NAME_DICT = {
   vani:'வாணி', sujatha:'சுஜாதா', vidya:'வித்யா', saranya:'சரண்யா', swathi:'ஸ்வாதி', suja:'சுஜா',
   janani:'ஜனனி', keerthana:'கீர்த்தனா', gayathri:'காயத்ரி', gayatri:'காயத்ரி', nandhini:'நந்தினி',
   deepa:'தீபா', sasikala:'சசிகலா', selvi:'செல்வி', parvathi:'பார்வதி', kalaivani:'கலைவாணி',
-  mala:'மாலா', menaka:'மேனகா', rani:'ராணி'
+  mala:'மாலா', menaka:'மேனகா', rani:'ராணி',
+  // Muslim names — established Tamil Nadu spellings, not literal transliteration
+  ahmed:'அகமது', ahamed:'அகமது', mohammed:'முகம்மது', mohammad:'முகம்மது', ali:'அலி', ibrahim:'இப்ராஹிம்',
+  yusuf:'யூசுப்', farhan:'பர்ஹான்', rahim:'ரஹீம்', rasheed:'ரஷீத்', rashid:'ரஷீத்', sameer:'சமீர்',
+  hameed:'ஹமீது', basha:'பாஷா', khan:'கான்', siraj:'சிராஜ்', rafiq:'ரபீக்', nawaz:'நவாஸ்', salim:'சலீம்',
+  anwar:'அன்வர்', farooq:'பாரூக்', yasin:'யாசின்', iqbal:'இக்பால்', hussain:'ஹுசைன்', hussein:'ஹுசைன்',
+  hassan:'ஹசன்', sultan:'சுல்தான்', sheik:'ஷேக்', jabbar:'ஜப்பார்', ismail:'இஸ்மாயில்', dawood:'தாவூத்',
+  fatima:'பாத்திமா', ayesha:'ஆயிஷா', zainab:'ஜைனப்', nazia:'நாசியா', rukhsana:'ருக்சானா',
+  shabana:'ஷபானா', sultana:'சுல்தானா', naseema:'நஸீமா', farida:'பரீதா', jasmine:'ஜாஸ்மின்',
+  // Christian names — established Tamil Nadu spellings
+  john:'ஜான்', joseph:'ஜோசப்', antony:'அந்தோணி', anthony:'அந்தோணி', michael:'மைக்கேல்', peter:'பீட்டர்',
+  paul:'பால்', xavier:'சேவியர்', stephen:'ஸ்டீபன்', raymond:'ரேமண்ட்', mary:'மேரி', stella:'ஸ்டெல்லா',
+  rose:'ரோஸ்', susan:'சூசன்', regina:'ரெஜினா', alphonse:'அல்போன்ஸ்', lourdes:'லூர்து',
+  francis:'பிரான்சிஸ்', vincent:'வின்சென்ட்', devasagayam:'தேவசகாயம்', amirtharaj:'அமிர்தராஜ்',
+  sean:'ஷான்', jerome:'ஜெரோம்', savarimuthu:'சவரிமுத்து', arokiasamy:'அரோக்கியசாமி'
 };
 const TA_CONS_MULTI = ['ngh','njh','ksh','sh','ch','th','dh','bh','ph','gh','kh','ng','ny','gn','zh'];
 const TA_CONS_MAP = { sh:'ஷ', ch:'ச', th:'த', dh:'த', bh:'ப', ph:'ப', gh:'க', kh:'க', ng:'ங', ny:'ஞ', gn:'ஞ', zh:'ழ', ngh:'ங்க', njh:'ஞ்ஜ', ksh:'க்ஷ' };
@@ -1582,7 +1597,7 @@ async function deleteCurrent(){
 }
 
 /* ---------------- Cascading Menu (replaces the old action bar) ---------------- */
-let menuState = { open:false, submenu:null }; // submenu: null | 'navigate' | 'delete'
+let menuState = { open:false };
 // Kept under its old name so every existing call site (renderAll(); refreshActionBar();)
 // still works — it just re-renders the menu contents if it's currently open.
 function refreshActionBar(){
@@ -1590,7 +1605,7 @@ function refreshActionBar(){
 }
 
 function closeMenu(){
-  menuState = { open:false, submenu:null };
+  menuState = { open:false };
   const panel = document.getElementById('menuPanel');
   if(panel){ panel.style.display='none'; panel.innerHTML=''; }
   document.removeEventListener('click', onDocClickCloseMenu, true);
@@ -1602,13 +1617,15 @@ function onDocClickCloseMenu(e){
   closeMenu();
 }
 function openMenu(){
-  menuState = { open:true, submenu:null };
+  menuState = { open:true };
   renderMenu();
   document.addEventListener('click', onDocClickCloseMenu, true);
 }
 function toggleMenu(){
   if(menuState.open) closeMenu(); else openMenu();
 }
+// Sticky, flat menu: every entry is shown at once (Navigate targets, New/Edit/Delete or
+// Save/Discard, and Language) — no nested cascading submenus to tap through.
 function renderMenu(){
   const panel = document.getElementById('menuPanel');
   if(!panel) return;
@@ -1621,31 +1638,25 @@ function renderMenu(){
   const spaceName = tr(kind==='asso'?'Assoc':kind==='firm'?'Firm':'Rep');
   let rows = [];
 
-  if(menuState.submenu==='navigate'){
-    rows.push({label:'‹ '+tr('Back'), action:()=>{ menuState.submenu=null; renderMenu(); }});
-    [['asso','Association'],['firm','Member Firms'],['rep','Representative']].forEach(([v,l])=>{
-      rows.push({label:tr(l)+(state.active===v?' ✓':''), action:()=>{ setActivePanel(v); closeMenu(); }});
-    });
-  } else if(menuState.submenu==='delete'){
-    rows.push({label:'‹ '+tr('Back'), action:()=>{ menuState.submenu=null; renderMenu(); }});
-    rows.push({label:tr('Yes, delete'), danger:true, action:()=>{ deleteCurrent(); closeMenu(); }});
-    rows.push({label:tr('Cancel'), action:()=> closeMenu()});
+  [['asso','Association'],['firm','Member Firms'],['rep','Representative']].forEach(([v,l])=>{
+    rows.push({label:tr(l)+(state.active===v?' ✓':''), action:()=>{ setActivePanel(v); closeMenu(); }});
+  });
+  if(mode==='browse'){
+    const newDisabled = (kind==='firm' && !state.selAsso) || (kind==='rep' && !state.selFirm);
+    rows.push({label:`${tr('New')} ${spaceName}`, disabled:newDisabled, action:()=>{ startNew(); closeMenu(); }});
+    rows.push({label:`${tr('Edit')} ${spaceName}`, disabled:!hasSel, action:()=>{ startEdit(); closeMenu(); }});
+    rows.push({label:`${tr('Delete')} ${spaceName}`, disabled:!hasSel, danger:true, action:()=>{
+      closeMenu();
+      if(confirm(`${tr('Delete')} ${spaceName}?`)) deleteCurrent();
+    }});
   } else {
-    rows.push({label:`${tr('Navigate')} — ${spaceName}`, arrow:'›', action:()=>{ menuState.submenu='navigate'; renderMenu(); }});
-    if(mode==='browse'){
-      const newDisabled = (kind==='firm' && !state.selAsso) || (kind==='rep' && !state.selFirm);
-      rows.push({label:`${tr('New')} ${spaceName}`, disabled:newDisabled, action:()=>{ startNew(); closeMenu(); }});
-      rows.push({label:`${tr('Edit')} ${spaceName}`, disabled:!hasSel, action:()=>{ startEdit(); closeMenu(); }});
-      rows.push({label:`${tr('Delete')} ${spaceName}`, arrow: hasSel?'›':undefined, disabled:!hasSel, danger:true, action:()=>{ menuState.submenu='delete'; renderMenu(); }});
-    } else {
-      rows.push({label:`${tr('Save')} ${spaceName}`, action:()=>{ saveCurrent(); closeMenu(); }});
-      rows.push({label:`${tr('Discard')} ${spaceName}`, action:()=>{ discardCurrent(); closeMenu(); }});
-    }
-    rows.push({label: lang==='en' ? 'தமிழ்' : 'English', action:()=>{ toggleLanguage(); renderMenu(); }});
+    rows.push({label:`${tr('Save')} ${spaceName}`, action:()=>{ saveCurrent(); closeMenu(); }});
+    rows.push({label:`${tr('Discard')} ${spaceName}`, action:()=>{ discardCurrent(); closeMenu(); }});
   }
+  rows.push({label: lang==='en' ? 'தமிழ்' : 'English', action:()=>{ toggleLanguage(); renderMenu(); }});
 
   panel.innerHTML = rows.map((r,i)=>`<div class="menu-item ${r.disabled?'disabled':''} ${r.danger?'danger':''}" data-i="${i}">
-      <span>${r.label}</span>${r.arrow?`<span class="mi-arrow">${r.arrow}</span>`:''}
+      <span>${r.label}</span>
     </div>`).join('');
   panel.querySelectorAll('.menu-item').forEach(el=>{
     const r = rows[+el.dataset.i];
