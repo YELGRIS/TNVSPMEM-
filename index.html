@@ -110,6 +110,22 @@ input.err,select.err{border-color:var(--error) !important;}
 #photoModalRetakeBtn{background:#eceff1;color:var(--text);}
 .photo-modal-footer{padding:10px 14px;border-top:1px solid #e3eaf0;text-align:right;}
 #photoModalCancelBtn{background:none;border:none;color:var(--error);font-weight:700;padding:8px 10px;cursor:pointer;}
+/* Tamil name chips + inline candidate strip (anchored under the chips, not floating/fixed) */
+.ta-name-box{position:relative;}
+.ta-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-items:center;padding:4px 0;}
+.ta-chip{display:inline-block;padding:6px 12px;border-radius:16px;background:var(--input-bg);border:2px solid var(--accent);color:var(--accent);font-weight:700;font-size:14px;cursor:pointer;}
+.ta-chip.active{background:var(--accent);color:#fff;}
+.ta-chip-empty{color:var(--muted);font-size:13px;font-style:italic;}
+.ta-popup-inline{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--panel);border:2px solid var(--accent);border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.18);z-index:60;padding:8px;}
+/* Horizontal, scrollable candidate strip — like a keyboard's suggestion bar */
+.ta-popup-strip{display:flex;overflow-x:auto;gap:6px;padding-bottom:8px;-webkit-overflow-scrolling:touch;}
+.ta-cand-pill{flex:0 0 auto;padding:6px 12px;border-radius:16px;background:var(--input-bg);border:1px solid var(--accent);color:var(--accent);font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;}
+.ta-cand-pill.best{background:var(--accent);color:#fff;}
+.ta-cand-empty{color:var(--muted);font-size:12px;white-space:nowrap;padding:6px 2px;}
+.ta-popup-editrow{display:flex;gap:6px;align-items:center;}
+.ta-popup-input{flex:1;min-width:0;font-size:16px;padding:8px;border-radius:8px;border:1px solid #cfd8dc;box-sizing:border-box;}
+.ta-popup-btn{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:none;font-weight:700;font-size:16px;cursor:pointer;background:#eceff1;color:var(--text);}
+.ta-popup-done{background:var(--accent);color:#fff;}
 #eventLog{position:relative;background:var(--panel);border-top:2px solid #e3eaf0;}
 .log-history{max-height:220px;overflow-y:auto;padding:6px 12px;border-bottom:1px solid #eceff1;}
 .log-history .log-item{font-size:13px;padding:4px 0;border-bottom:1px dashed #eceff1;color:var(--text);}
@@ -412,10 +428,9 @@ function toTitleCase(v){
   if(!v) return v;
   return v.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
-// Tamil name transliteration: an established-spelling dictionary (Hindu, Muslim, Christian and
-// Tamil-regional names, as actually written in Tamil Nadu records/everyday use — not a
-// letter-by-letter phonetic guess) is checked first, word by word; only a name that isn't in the
-// list falls back to the syllable engine below as a last resort.
+// Tamil name helper — Google-keyboard style, word by word. Curated Tamil Nadu spellings are
+// checked first; anything not curated is looked up live via Google Input Tools. No letter-by-
+// letter phonetic guessing is used any more.
 const TAMIL_NAME_DICT = {
   kumar:'குமார்', suresh:'சுரேஷ்', ramesh:'ரமேஷ்', rajesh:'ராஜேஷ்', dinesh:'தினேஷ்', mahesh:'மகேஷ்',
   naresh:'நரேஷ்', lokesh:'லோகேஷ்', yogesh:'யோகேஷ்', mukesh:'முகேஷ்', prakash:'பிரகாஷ்', vikas:'விகாஸ்',
@@ -448,7 +463,6 @@ const TAMIL_NAME_DICT = {
   janani:'ஜனனி', keerthana:'கீர்த்தனா', gayathri:'காயத்ரி', gayatri:'காயத்ரி', nandhini:'நந்தினி',
   deepa:'தீபா', sasikala:'சசிகலா', selvi:'செல்வி', parvathi:'பார்வதி', kalaivani:'கலைவாணி',
   mala:'மாலா', menaka:'மேனகா', rani:'ராணி',
-  // Muslim names — established Tamil Nadu spellings, not literal transliteration
   ahmed:'அகமது', ahamed:'அகமது', mohammed:'முகம்மது', mohammad:'முகம்மது', ali:'அலி', ibrahim:'இப்ராஹிம்',
   yusuf:'யூசுப்', farhan:'பர்ஹான்', rahim:'ரஹீம்', rasheed:'ரஷீத்', rashid:'ரஷீத்', sameer:'சமீர்',
   hameed:'ஹமீது', basha:'பாஷா', khan:'கான்', siraj:'சிராஜ்', rafiq:'ரபீக்', nawaz:'நவாஸ்', salim:'சலீம்',
@@ -456,80 +470,284 @@ const TAMIL_NAME_DICT = {
   hassan:'ஹசன்', sultan:'சுல்தான்', sheik:'ஷேக்', jabbar:'ஜப்பார்', ismail:'இஸ்மாயில்', dawood:'தாவூத்',
   fatima:'பாத்திமா', ayesha:'ஆயிஷா', zainab:'ஜைனப்', nazia:'நாசியா', rukhsana:'ருக்சானா',
   shabana:'ஷபானா', sultana:'சுல்தானா', naseema:'நஸீமா', farida:'பரீதா', jasmine:'ஜாஸ்மின்',
-  // Christian names — established Tamil Nadu spellings
   john:'ஜான்', joseph:'ஜோசப்', antony:'அந்தோணி', anthony:'அந்தோணி', michael:'மைக்கேல்', peter:'பீட்டர்',
   paul:'பால்', xavier:'சேவியர்', stephen:'ஸ்டீபன்', raymond:'ரேமண்ட்', mary:'மேரி', stella:'ஸ்டெல்லா',
   rose:'ரோஸ்', susan:'சூசன்', regina:'ரெஜினா', alphonse:'அல்போன்ஸ்', lourdes:'லூர்து',
   francis:'பிரான்சிஸ்', vincent:'வின்சென்ட்', devasagayam:'தேவசகாயம்', amirtharaj:'அமிர்தராஜ்',
   sean:'ஷான்', jerome:'ஜெரோம்', savarimuthu:'சவரிமுத்து', arokiasamy:'அரோக்கியசாமி'
 };
-const TA_CONS_MULTI = ['ngh','njh','ksh','sh','ch','th','dh','bh','ph','gh','kh','ng','ny','gn','zh'];
-const TA_CONS_MAP = { sh:'ஷ', ch:'ச', th:'த', dh:'த', bh:'ப', ph:'ப', gh:'க', kh:'க', ng:'ங', ny:'ஞ', gn:'ஞ', zh:'ழ', ngh:'ங்க', njh:'ஞ்ஜ', ksh:'க்ஷ' };
-const TA_CONS_SINGLE = { k:'க', g:'க', c:'ச', j:'ஜ', t:'த', d:'த', n:'ந', p:'ப', b:'ப', m:'ம', y:'ய', r:'ர', l:'ல', v:'வ', w:'வ', s:'ஸ', h:'ஹ', f:'ஃப', x:'க்ஸ', q:'க' };
-const TA_VOWEL_ORDER = ['aa','ee','oo','ai','au','ow','a','i','u','e','o'];
-const TA_VOWEL_INFO = {
-  aa:['ஆ','ா'], ee:['ஈ','ீ'], oo:['ஊ','ூ'], ai:['ஐ','ை'], au:['ஔ','ௌ'], ow:['ஔ','ௌ'],
-  a:['அ',''], i:['இ','ி'], u:['உ','ு'], e:['எ','ெ'], o:['ஒ','ொ']
+// Curated real-world alternates (never invented) — merged into CURATED_NAMES below.
+const TAMIL_NAME_ALTS = {
+  vinodh:['வினோத்','வினோத'], vinod:['வினோத்','வினோத'],
+  sreedharan:['சிறீதரன்'],
+  ahmed:['அஹமது','அகமெது'], ahamed:['அஹமது','அகமெது'],
+  mohammed:['முகமது','மொஹமது'], mohammad:['முகமது','மொஹமது'],
+  sean:['சான்'], john:['ஜோன்'], hassan:['ஹஸன்'],
+  kumar:['குமார்'], suresh:['ஸுரேஷ்'], ramesh:['ராமேஷ்'], rajesh:['ராஜேஷ்','ராஜேஸ்'],
+  priya:['ப்ரியா'], kavitha:['கவிதா','கவிதை'], anand:['ஆனந்தன்'], vishnu:['விஷ்ணூ'],
+  krishna:['கிருஷ்ணன்','கிருஷ்ணா'], siva:['சிவா','ஷிவா'], shiva:['சிவா','ஷிவா'],
+  karthik:['கார்த்திக்','கார்த்திகேயன்'], sundar:['சுந்தர்','சுந்தரம்'], ali:['அலீ'],
+  fatima:['ஃபாத்திமா'], mary:['மேரி','மரி'], joseph:['ஜோசப்','யோசேப்']
 };
-function transliterateWordToTamil(word){
-  const dictHit = TAMIL_NAME_DICT[word.toLowerCase()];
-  if(dictHit) return dictHit;
-  const lower = word.toLowerCase();
-  const n = lower.length;
-  const matchVowel = (pos)=>{ for(const v of TA_VOWEL_ORDER){ if(lower.startsWith(v, pos)) return v; } return null; };
-  let i = 0, out = '';
-  while(i < n){
-    const ch = lower[i];
-    if(!/[a-z]/.test(ch)){ out += word[i]; i++; continue; } // punctuation/digits pass through as-is
-    const consKey = TA_CONS_MULTI.find(c => lower.startsWith(c, i));
-    let cons = null, consLen = 0;
-    if(consKey){ cons = TA_CONS_MAP[consKey]; consLen = consKey.length; }
-    else if(TA_CONS_SINGLE[ch]){
-      cons = TA_CONS_SINGLE[ch]; consLen = 1;
-      // nasal place-assimilation: "n" before k/g or p/b shifts to ங / ம (Sankar, Priyanka, Thambi)
-      if(ch==='n'){
-        const nxt = lower[i+1];
-        if(nxt==='k' || nxt==='g') cons = 'ங';
-        else if(nxt==='p' || nxt==='b') cons = 'ம';
-      }
-    }
-    if(cons){
-      i += consLen;
-      let doubled = false;
-      // gemination — a repeated consonant letter (amma, chitty) is written pulli + repeat
-      if(consLen===1 && lower[i]===ch && !TA_CONS_MULTI.find(c=>lower.startsWith(c,i))){ doubled = true; i += 1; }
-      if(doubled) out += cons + '்';
-      const vKey = matchVowel(i);
-      if(vKey){
-        const consumedLen = vKey.length;
-        const atWordEnd = (i+consumedLen===n);
-        // an unstressed word-final "a" is normally written long in Tamil names (Priya -> பிரியா)
-        const outKey = (vKey==='a' && atWordEnd) ? 'aa' : vKey;
-        out += cons + TA_VOWEL_INFO[outKey][1];
-        i += consumedLen;
-      } else {
-        out += cons + '்'; // no vowel follows — pure consonant sound (pulli)
-      }
-    } else if('aeiou'.includes(ch)){
-      const vKey = matchVowel(i);
-      const consumedLen = vKey.length;
-      const atWordEnd = (i+consumedLen===n);
-      const outKey = (vKey==='a' && atWordEnd) ? 'aa' : vKey;
-      out += TA_VOWEL_INFO[outKey][0];
-      i += consumedLen;
+// { englishWordLower: [best, ...alternates] } — the single source of truth for candidates.
+const CURATED_NAMES = {};
+Object.keys(TAMIL_NAME_DICT).forEach(k=>{
+  const combined = [TAMIL_NAME_DICT[k], ...(TAMIL_NAME_ALTS[k]||[])];
+  CURATED_NAMES[k] = combined.filter((v,i,a)=> a.indexOf(v)===i); // dedupe
+});
+
+function taNameKey(w){ return (w||'').toLowerCase().replace(/[^a-z]/g,''); }
+function taSplitWords(s){ return (s||'').trim().split(/\s+/).filter(Boolean); }
+function taDebounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
+
+// Google Input Tools fallback for words with no curated entry. Network call only — never a
+// local phonetic guess. Fails silently (returns []) so a slow/blocked network never breaks typing.
+async function taFetchGoogleCandidates(word){
+  try{
+    const url = `https://inputtools.google.com/request?text=${encodeURIComponent(word)}&itc=ta-t-i0-und&num=40&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!Array.isArray(data) || data[0]!=='SUCCESS') return [];
+    const inner = data[1];
+    const pair = Array.isArray(inner) && Array.isArray(inner[0]) ? inner[0] : inner;
+    const cands = pair && pair[1];
+    return Array.isArray(cands) ? cands : [];
+  }catch(e){ return []; }
+}
+
+// ---- Chip widget state, one entry per Tamil field id ----
+let taWidgetState = {};   // { [fieldId]: { srcField, englishWords, tamilWords, edited, candidatesMap, currentIndex } }
+let taActivePopupFieldId = null;
+
+function taRenderChips(fid){
+  const st = taWidgetState[fid];
+  const box = document.getElementById('tanamechips_'+fid);
+  if(!st || !box) return;
+  box.innerHTML = st.tamilWords.length
+    ? st.tamilWords.map((w,i)=>`<span class="ta-chip ${st.currentIndex===i?'active':''}" data-i="${i}">${w || '—'}</span>`).join('')
+    : `<span class="ta-chip-empty">${tr('Type the name above')}</span>`;
+  box.querySelectorAll('.ta-chip').forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      const idx = +ch.dataset.i;
+      taSelectEnglishWord(fid, idx);
+      taOpenPopup(fid, idx);
+    });
+  });
+}
+function taUpdateChipTextOnly(fid, idx){
+  const box = document.getElementById('tanamechips_'+fid);
+  const chip = box && box.querySelector(`.ta-chip[data-i="${idx}"]`);
+  if(chip) chip.textContent = taWidgetState[fid].tamilWords[idx] || '—';
+}
+function taSyncHiddenField(fid){
+  const st = taWidgetState[fid];
+  const hid = document.getElementById('fld_'+fid);
+  if(hid){ hid.value = st.tamilWords.filter(Boolean).join(' '); hid.dispatchEvent(new Event('input')); }
+}
+
+// Recomputes tamilWords from the English input: a word that hasn't changed keeps whatever the
+// person chose/typed for it; a new or edited word gets the curated default (fetched from Google
+// lazily, only once its popup is actually opened — see taOpenPopup).
+function taRebuildFromEnglish(fid){
+  const st = taWidgetState[fid];
+  if(!st) return;
+  const srcEl = document.getElementById('fld_'+st.srcField);
+  const words = taSplitWords(srcEl ? srcEl.value : '');
+  const oldWords = st.englishWords, oldTamil = st.tamilWords, oldEdited = st.edited;
+  const newTamil = [], newEdited = [], newCands = {};
+  words.forEach((w, i)=>{
+    if(oldWords[i]===w && oldTamil[i]!==undefined){
+      newTamil.push(oldTamil[i]);
+      newEdited.push(!!oldEdited[i]);
+      if(st.candidatesMap[i]) newCands[i] = st.candidatesMap[i];
     } else {
-      out += word[i]; i++;
+      const cur = CURATED_NAMES[taNameKey(w)];
+      newTamil.push(cur ? cur[0] : w);
+      newEdited.push(false);
     }
+  });
+  st.englishWords = words;
+  st.tamilWords = newTamil;
+  st.edited = newEdited;
+  st.candidatesMap = newCands;
+  if(st.currentIndex >= words.length) st.currentIndex = -1;
+  taRenderChips(fid);
+  taSyncHiddenField(fid);
+}
+
+function taWordIndexAtCaret(inputEl){
+  const val = inputEl.value;
+  const pos = inputEl.selectionStart || 0;
+  const before = val.slice(0, pos);
+  const wordsBefore = taSplitWords(before);
+  return Math.max(0, wordsBefore.length - (/\s$/.test(before) ? 0 : 1));
+}
+function taSelectEnglishWord(fid, idx){
+  const st = taWidgetState[fid];
+  const srcEl = document.getElementById('fld_'+st.srcField);
+  const words = st.englishWords;
+  if(!srcEl || idx>=words.length || idx<0) return;
+  let pos = 0;
+  for(let i=0;i<idx;i++) pos += words[i].length + 1;
+  srcEl.focus();
+  srcEl.setSelectionRange(pos, pos + (words[idx]||'').length);
+  st.currentIndex = idx;
+  taRenderChips(fid);
+}
+
+function taRenderPopupCandidates(fid){
+  const st = taWidgetState[fid];
+  const idx = st.currentIndex;
+  const strip = document.getElementById('tastrip_'+fid);
+  if(!strip) return;
+  const cands = st.candidatesMap[idx] || [];
+  strip.innerHTML = cands.length
+    ? cands.map((c,i)=>`<span class="ta-cand-pill ${i===0?'best':''}" data-v="${c.replace(/"/g,'&quot;')}">${c}</span>`).join('')
+    : `<span class="ta-cand-empty">${tr('No suggestions — type manually')}</span>`;
+  strip.querySelectorAll('.ta-cand-pill').forEach(el=>{
+    el.addEventListener('mousedown', (e)=>{ e.preventDefault(); taChooseCandidate(fid, el.dataset.v); });
+  });
+}
+// Fetches Google candidates for one word and merges them with the curated ones — only refreshes
+// the visible chip/strip if that word is still current and hasn't been hand-edited meanwhile.
+async function taEnsureCandidates(fid, idx){
+  const st = taWidgetState[fid];
+  const word = st.englishWords[idx];
+  const key = taNameKey(word);
+  if(!st.candidatesMap[idx]) st.candidatesMap[idx] = CURATED_NAMES[key] ? [...CURATED_NAMES[key]] : [];
+  if(taActivePopupFieldId===fid && st.currentIndex===idx) taRenderPopupCandidates(fid);
+  const g = await taFetchGoogleCandidates(word);
+  if(!g.length) return;
+  const st2 = taWidgetState[fid];
+  if(!st2 || st2.englishWords[idx]!==word) return; // stale — word changed/removed meanwhile
+  // Increase permutations: keep a wider merged pool (curated + up to 20 Google candidates).
+  const merged = [...(st2.candidatesMap[idx]||[]), ...g].filter((v,i,a)=> v && a.indexOf(v)===i).slice(0,35);
+  st2.candidatesMap[idx] = merged;
+  if(!st2.edited[idx] && merged.length){
+    st2.tamilWords[idx] = merged[0];
+    taUpdateChipTextOnly(fid, idx);
+    taSyncHiddenField(fid);
   }
-  return out;
+  if(taActivePopupFieldId===fid && st2.currentIndex===idx) taRenderPopupCandidates(fid);
 }
-function transliterateToTamil(name){
-  const s = (name||'').trim();
-  if(!s) return '';
-  return s.split(/(\s+)/).map(chunk => /^\s+$/.test(chunk) ? chunk : transliterateWordToTamil(chunk)).join('');
+function taChooseCandidate(fid, val){
+  const st = taWidgetState[fid];
+  const idx = st.currentIndex;
+  st.tamilWords[idx] = val;
+  st.edited[idx] = true;
+  taUpdateChipTextOnly(fid, idx);
+  taSyncHiddenField(fid);
+  taAdvance(fid);
 }
-// Which "Name" field auto-fills which "Name (Tamil)" field, on blur, when the Tamil field is empty.
-const NAME_TA_MAP = { firmName:'firmNameTa', repName:'repNameTa' };
+// The popup is a small inline panel anchored right under THIS field's own chips (position:relative
+// wrapper) rather than a fixed/floating overlay — so it always lands in-document, next to what the
+// person is editing, and never gets stranded off-screen or behind the on-screen keyboard.
+function taOpenPopup(fid, idx){
+  const st = taWidgetState[fid];
+  if(!st || idx<0 || idx>=st.englishWords.length) return;
+  if(taActivePopupFieldId && taActivePopupFieldId!==fid) taClosePopup();
+  st.currentIndex = idx;
+  taActivePopupFieldId = fid;
+  taRenderChips(fid);
+
+  const panel = document.getElementById('tapopup_'+fid);
+  if(panel) panel.style.display = 'block';
+  const input = document.getElementById('taedit_'+fid);
+  if(input){ input.value = st.tamilWords[idx] || ''; }
+  taRenderPopupCandidates(fid);
+  taEnsureCandidates(fid, idx);
+  if(input) input.focus();
+  document.addEventListener('click', taDocClickClosePopup, true);
+}
+function taDocClickClosePopup(e){
+  const fid = taActivePopupFieldId;
+  if(!fid) return;
+  const panel = document.getElementById('tapopup_'+fid);
+  if(panel && panel.contains(e.target)) return;
+  if(e.target.closest && e.target.closest(`#tanamechips_${fid} .ta-chip`)) return; // chip click opens its own popup
+  taClosePopup();
+}
+function taClosePopup(){
+  const fid = taActivePopupFieldId;
+  if(fid){ const panel = document.getElementById('tapopup_'+fid); if(panel) panel.style.display = 'none'; }
+  document.removeEventListener('click', taDocClickClosePopup, true);
+  taActivePopupFieldId = null;
+}
+function taAdvance(fid){
+  const st = taWidgetState[fid];
+  const nextIdx = st.currentIndex + 1;
+  taClosePopup();
+  if(nextIdx < st.englishWords.length){
+    taSelectEnglishWord(fid, nextIdx);
+    taOpenPopup(fid, nextIdx);
+  } else {
+    st.currentIndex = -1;
+    taRenderChips(fid);
+    const srcEl = document.getElementById('fld_'+st.srcField);
+    if(srcEl) focusNextInput(srcEl);
+  }
+}
+
+// Sets up one Name (Tamil) chip field: fid is the Tamil field's id, f.srcField its English field.
+function initNameTaWidget(kind, f, data){
+  const fid = f.id;
+  const srcEl = document.getElementById('fld_'+f.srcField);
+  if(!srcEl) return;
+  const initialEnglish = taSplitWords(srcEl.value);
+  const initialTamil = taSplitWords(data[fid]);
+  taWidgetState[fid] = {
+    srcField: f.srcField,
+    englishWords: initialEnglish,
+    tamilWords: initialEnglish.map((w,i)=> initialTamil[i] || (CURATED_NAMES[taNameKey(w)]||[])[0] || w),
+    edited: initialEnglish.map((w,i)=> !!initialTamil[i]),
+    candidatesMap: {},
+    currentIndex: -1
+  };
+  taRenderChips(fid);
+  taSyncHiddenField(fid);
+
+  const editEl = document.getElementById('taedit_'+fid);
+  const clearBtn = document.getElementById('taclear_'+fid);
+  const doneBtn = document.getElementById('tadone_'+fid);
+  if(editEl && !editEl.dataset.taWired){
+    editEl.dataset.taWired = '1';
+    editEl.addEventListener('input', (e)=>{
+      const st = taWidgetState[fid];
+      const idx = st.currentIndex;
+      if(idx<0) return;
+      st.tamilWords[idx] = e.target.value;
+      st.edited[idx] = true;
+      taUpdateChipTextOnly(fid, idx); // chip text only — the panel stays mounted and focused
+      taSyncHiddenField(fid);
+    });
+    editEl.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); taAdvance(fid); }
+      else if(e.key==='Escape'){ e.preventDefault(); taClosePopup(); srcEl.focus(); }
+    });
+    if(clearBtn) clearBtn.addEventListener('click', ()=>{
+      const st = taWidgetState[fid], idx = st.currentIndex;
+      if(idx<0) return;
+      st.tamilWords[idx] = '';
+      st.edited[idx] = true;
+      editEl.value = '';
+      taUpdateChipTextOnly(fid, idx);
+      taSyncHiddenField(fid);
+      editEl.focus();
+    });
+    if(doneBtn) doneBtn.addEventListener('click', ()=> taAdvance(fid));
+  }
+  if(srcEl.dataset.taWired) return; // don't stack duplicate listeners if wired more than once
+  srcEl.dataset.taWired = '1';
+  srcEl.addEventListener('blur', ()=> taRebuildFromEnglish(fid));
+  const caretHandler = ()=>{
+    const st = taWidgetState[fid];
+    const idx = taWordIndexAtCaret(srcEl);
+    if(idx!==st.currentIndex){ st.currentIndex = idx; taRenderChips(fid); }
+    if(st.englishWords[idx]) taOpenPopup(fid, idx);
+  };
+  srcEl.addEventListener('click', caretHandler);
+  srcEl.addEventListener('keyup', (e)=>{ if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) caretHandler(); });
+}
 function findCaseInsensitive(obj, val){
   if(!val) return null;
   const lower = val.toLowerCase();
@@ -724,7 +942,7 @@ const ASSO_FIELDS = [
 ];
 const FIRM_FIELDS = [
  {id:'firmName', label:'Firm Name', type:'text', max:60, required:true},
- {id:'firmNameTa', label:'Name (Tamil)', type:'text', max:60},
+ {id:'firmNameTa', label:'Name (Tamil)', type:'nameTa', max:60, srcField:'firmName'},
  {id:'firmParent', label:'Parent Firm', type:'parent', coll:'firm'},
  {id:'firmCategory', label:'Business Category', type:'suggest', source:'firmCategories', max:15},
  {id:'memOwnType', label:'Ownership Type', type:'suggest', source:'memOwnType', max:25},
@@ -743,7 +961,7 @@ const FIRM_FIELDS = [
 ];
 const REP_FIELDS = [
  {id:'repName', label:'Representative Name', type:'text', max:60, required:true},
- {id:'repNameTa', label:'Name (Tamil)', type:'text', max:60},
+ {id:'repNameTa', label:'Name (Tamil)', type:'nameTa', max:60, srcField:'repName'},
  // The next four sit in a left column beside the photo (see CLUSTER_WITH_PHOTO / renderForm).
  {id:'repParent', label:'Parent Representative', type:'parent', coll:'rep'},
  {id:'repRelation', label:'Relation', type:'suggest', source:'repRelations', max:15},
@@ -892,6 +1110,20 @@ function renderField(kind, f, data, editable){
     return fieldWrap(f, `<div style="position:relative">
       <input id="fld_${f.id}" type="text" maxlength="60" value="${val}" ${dis} autocomplete="off" ${type?'':`placeholder="${tr('Pick a Geo Type first')}"`}>
       <div class="suggest-box" id="sugg_${f.id}" style="display:none"></div>
+    </div>`);
+  }
+  if(f.type==='nameTa'){
+    return fieldWrap(f, `<div class="ta-name-box">
+      <div class="ta-chips" id="tanamechips_${f.id}"></div>
+      <div class="ta-popup-inline" id="tapopup_${f.id}" style="display:none">
+        <div class="ta-popup-strip" id="tastrip_${f.id}"></div>
+        <div class="ta-popup-editrow">
+          <input type="text" class="ta-popup-input" id="taedit_${f.id}" lang="ta" inputmode="text" placeholder="தமிழ் தட்டச்சு செய்யவும்">
+          <button type="button" class="ta-popup-btn" id="taclear_${f.id}">✕</button>
+          <button type="button" class="ta-popup-btn ta-popup-done" id="tadone_${f.id}">✓</button>
+        </div>
+      </div>
+      <input type="hidden" id="fld_${f.id}" value="${val}">
     </div>`);
   }
   if(f.type==='suggest'){
@@ -1194,15 +1426,6 @@ function wireValidation(kind, fields, data){
     el.addEventListener('blur', ()=>{
       if(TITLE_CASE_FIELDS.has(f.id) && el.value){ el.value = toTitleCase(el.value); }
       update();
-      const taId = NAME_TA_MAP[f.id];
-      if(taId && el.value){
-        const taEl = document.getElementById('fld_'+taId);
-        if(taEl && !taEl.value){
-          taEl.value = transliterateToTamil(el.value);
-          taEl.dispatchEvent(new Event('input'));
-          logEvent(`Auto-filled the Tamil name from "${el.value}" — edit it if it isn't quite right.`, {transient:true});
-        }
-      }
     });
 
     // Parent / GeoType / Sex: focus opens an inline picker right under the field; picking a
@@ -1285,6 +1508,9 @@ function wireValidation(kind, fields, data){
     }
     if(f.type==='suggest'){
       wireInlineTextSuggest(el, document.getElementById('sugg_'+f.id), ()=> topByFreq(learning[f.source]||{}, 40));
+    }
+    if(f.type==='nameTa'){
+      initNameTaWidget(kind, f, data);
     }
     if(f.type==='geoscope'){
       wireInlineTextSuggest(el, document.getElementById('sugg_'+f.id), ()=> geoScopeOptions(data.assoGeoType||''));
